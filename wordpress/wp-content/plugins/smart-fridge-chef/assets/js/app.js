@@ -1051,25 +1051,48 @@
     }
 
     // Fetch Stores & Recommendations
-    function fetchStoresAndRecommendations() {
-        if (!state.userLocation || !state.userLocation.lat || !state.userLocation.lon) {
+    function fetchStoresAndRecommendations(queryText) {
+        if (!state.userLocation && !queryText) {
             showLocationPrompt();
             return;
         }
 
         if (dom.locationPrompt) dom.locationPrompt.style.display = 'none';
 
+        const payload = {
+            shopping_list: state.shoppingList
+        };
+
+        if (state.userLocation && state.userLocation.lat && state.userLocation.lon) {
+            payload.lat = state.userLocation.lat;
+            payload.lon = state.userLocation.lon;
+        }
+
+        if (queryText) {
+            payload.query = queryText;
+        }
+
         fetch(sfcConfig.restUrl + 'find-stores', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': sfcConfig.nonce },
-            body: JSON.stringify({
-                lat: state.userLocation.lat,
-                lon: state.userLocation.lon,
-                shopping_list: state.shoppingList
-            })
+            body: JSON.stringify(payload)
         })
         .then(r => r.json())
         .then(data => {
+            if (data.user_location && data.user_location.lat && data.user_location.lon) {
+                state.userLocation = data.user_location;
+                if (state.map) {
+                    state.map.setView([data.user_location.lat, data.user_location.lon], 15);
+                }
+            }
+
+            if (data.city_name && !state.userCityName) {
+                state.userCityName = data.city_name;
+                if (dom.searchAddressInput) {
+                    dom.searchAddressInput.value = data.city_name;
+                }
+            }
+
             if (data.success && data.stores && data.stores.length > 0) {
                 state.stores = data.stores;
                 state.recommendation = data.recommendation;
@@ -1078,9 +1101,18 @@
                 updateMapMarkers();
             } else if (data.needs_location) {
                 showLocationPrompt();
+            } else {
+                state.stores = [];
+                state.recommendation = null;
+                renderStoreRecommendation(null);
+                renderStoresList([], data.message);
+                updateMapMarkers();
             }
         })
-        .catch(e => console.error('Error fetching stores:', e));
+        .catch(e => {
+            console.error('Error fetching stores:', e);
+            renderStoresList([], 'Не удалось загрузить данные с карты. Проверьте интернет-соединение.');
+        });
     }
 
     // Render Store Recommendation Card
@@ -1125,15 +1157,17 @@
     }
 
     // Render Stores List
-    function renderStoresList(stores) {
+    function renderStoresList(stores, emptyMsg) {
         dom.storesList.innerHTML = '';
         if (!stores || stores.length === 0) {
-            dom.storesList.innerHTML = '<p class="sfc-subtext">Супермаркеты поблизости не найдены. Попробуйте указать другой адрес.</p>';
+            const msg = emptyMsg || 'В радиусе 3-5 км на карте не найдено продуктовых магазинов. Попробуйте указать другой адрес или район.';
+            dom.storesList.innerHTML = `<div class="sfc-empty-placeholder" style="padding:24px 12px;"><span class="material-symbols-outlined sfc-empty-icon">search_off</span><h3>Магазины не найдены</h3><p class="sfc-subtext">${escapeHtml(msg)}</p></div>`;
             return;
         }
 
-        if (dom.storesSubtitle && state.userCityName) {
-            dom.storesSubtitle.textContent = `Найдено ${stores.length} магазинов рядом с вами (${state.userCityName})`;
+        if (dom.storesSubtitle) {
+            const locText = state.userCityName ? ` (${state.userCityName})` : '';
+            dom.storesSubtitle.textContent = `Найдено реальных магазинов на карте: ${stores.length}${locText}`;
         }
 
         stores.forEach(store => {
@@ -1352,12 +1386,13 @@
                     }
                     fetchStoresAndRecommendations();
                 } else {
-                    alert('Город не найден. Проверьте правильность написания.');
+                    // Try server-side geocoding fallback
+                    fetchStoresAndRecommendations(query);
                 }
             })
             .catch(e => {
-                console.error('Geocoding error:', e);
-                alert('Ошибка при поиске адреса.');
+                console.warn('Direct geocoding error, falling back to server:', e);
+                fetchStoresAndRecommendations(query);
             })
             .finally(() => {
                 dom.btnSearchCity.innerHTML = '<span class="material-symbols-outlined">arrow_forward</span>';

@@ -166,7 +166,18 @@ class SFC_API_Controller {
         $params = $request->get_json_params();
         $lat           = isset( $params['lat'] ) && is_numeric( $params['lat'] ) ? floatval( $params['lat'] ) : null;
         $lon           = isset( $params['lon'] ) && is_numeric( $params['lon'] ) ? floatval( $params['lon'] ) : null;
+        $query_addr    = ! empty( $params['query'] ) ? trim( sanitize_text_field( $params['query'] ) ) : ( ! empty( $params['address'] ) ? trim( sanitize_text_field( $params['address'] ) ) : '' );
         $shopping_list = $params['shopping_list'] ?? [];
+        $city_detected = '';
+
+        if ( ( empty( $lat ) || empty( $lon ) ) && ! empty( $query_addr ) ) {
+            $geocoded = self::geocode_address( $query_addr );
+            if ( $geocoded ) {
+                $lat = $geocoded['lat'];
+                $lon = $geocoded['lon'];
+                $city_detected = $geocoded['name'];
+            }
+        }
 
         if ( empty( $lat ) || empty( $lon ) ) {
             return rest_ensure_response([
@@ -183,9 +194,44 @@ class SFC_API_Controller {
         return rest_ensure_response([
             'success'        => true,
             'user_location'  => $result['user_location'],
+            'city_name'      => $city_detected,
             'stores'         => $result['stores'],
             'recommendation' => $result['recommendation'],
+            'message'        => $result['message'] ?? null,
         ]);
+    }
+
+    /**
+     * Geocode an address string using Nominatim
+     */
+    public static function geocode_address( $query ) {
+        $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode( $query ) . '&limit=1&addressdetails=1';
+        $res = wp_remote_get( $url, [
+            'timeout'   => 7,
+            'headers'   => [
+                'User-Agent'      => 'SmartFridgeChefApp/1.0 (denis.fridgechef@gmail.com; WordPress)',
+                'Accept-Language' => 'ru,en;q=0.8'
+            ],
+            'sslverify' => false,
+        ]);
+
+        if ( is_wp_error( $res ) ) {
+            return null;
+        }
+
+        $data = json_decode( wp_remote_retrieve_body( $res ), true );
+        if ( empty( $data ) || ! is_array( $data ) || ! isset( $data[0]['lat'] ) ) {
+            return null;
+        }
+
+        $item = $data[0];
+        $name = $item['address']['city'] ?? ( $item['address']['town'] ?? ( $item['address']['village'] ?? ( explode( ',', $item['display_name'] )[0] ) ) );
+
+        return [
+            'lat'  => floatval( $item['lat'] ),
+            'lon'  => floatval( $item['lon'] ),
+            'name' => trim( $name ),
+        ];
     }
 
     /**

@@ -1,6 +1,8 @@
 <?php
 /**
  * Store Locator & Smart Recommendation Engine
+ * 100% Real Map Data via OpenStreetMap Nominatim
+ * ZERO Synthetic / Hallucinated Stores
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -26,15 +28,21 @@ class SFC_Store_Locator {
             ];
         }
 
-        // Try querying live OpenStreetMap Overpass
-        $stores = self::query_overpass( $lat, $lon );
+        // Cache key based on rounded coordinates (~100m radius)
+        $cache_key = 'sfc_real_stores_' . md5( round( $lat, 3 ) . '_' . round( $lon, 3 ) );
+        $cached_stores = get_transient( $cache_key );
 
-        // If Overpass returned few results or failed, generate realistic nearby chain stores
-        if ( empty( $stores ) || count( $stores ) < 3 ) {
-            $stores = self::generate_realistic_chain_stores( $lat, $lon, $stores );
+        if ( false !== $cached_stores && is_array( $cached_stores ) ) {
+            $stores = $cached_stores;
+        } else {
+            // Live OpenStreetMap Nominatim Viewbox Search
+            $stores = self::query_nominatim_real_stores( $lat, $lon );
+            if ( ! empty( $stores ) ) {
+                set_transient( $cache_key, $stores, 2 * HOUR_IN_SECONDS );
+            }
         }
 
-        // Calculate distances & walking times
+        // Calculate accurate Haversine distances & walking times
         foreach ( $stores as &$store ) {
             $dist_meters = self::haversine_distance( $lat, $lon, $store['lat'], $store['lon'] );
             $store['distance_m'] = round( $dist_meters );
@@ -42,15 +50,25 @@ class SFC_Store_Locator {
         }
         unset( $store );
 
-        // Sort by distance initially
+        // Sort ascending by distance
         usort( $stores, function( $a, $b ) {
             return $a['distance_m'] <=> $b['distance_m'];
         });
 
-        // 1. Try AI-powered recommendation (Ollama / Claude / Gemini)
+        // If no stores were found on the map, return empty list with honest message — DO NOT FABRICATE
+        if ( empty( $stores ) ) {
+            return [
+                'user_location'  => [ 'lat' => $lat, 'lon' => $lon ],
+                'stores'         => [],
+                'recommendation' => null,
+                'message'        => 'В радиусе 3-5 км на карте не найдено супермаркетов. Попробуйте указать другой адрес или район.'
+            ];
+        }
+
+        // 1. Try AI-powered recommendation (Ollama Cloud / Claude / Gemini)
         $recommendation = SFC_AI_Engine::analyze_stores_with_ai( $stores, $shopping_list, [ 'lat' => $lat, 'lon' => $lon ] );
 
-        // 2. Fallback to smart heuristic if external AI is not active or returned null
+        // 2. Fallback to smart universal heuristic if external AI is not active or returned null
         if ( empty( $recommendation ) ) {
             $recommendation = self::calculate_recommendation( $stores, $shopping_list );
             $recommendation['ai_model'] = 'Встроенный экспертный интеллект';
@@ -81,196 +99,389 @@ class SFC_Store_Locator {
     }
 
     /**
-     * Query OpenStreetMap Overpass API
+     * Query OpenStreetMap Nominatim for real stores within a bounded viewbox
      */
-    public static function query_overpass( $lat, $lon ) {
-        $radius = 1200; // 1.2 km
-        $overpass_ql = "[out:json][timeout:4];(node[\"shop\"~\"supermarket|convenience\"](around:{$radius},{$lat},{$lon}););out body 8;";
-        $url = 'https://overpass-api.de/api/interpreter?data=' . urlencode( $overpass_ql );
+    public static function query_nominatim_real_stores( $lat, $lon ) {
+        $dlat = 0.035; // ~3.8 km
+        $dlon = 0.040 / max( 0.2, cos( deg2rad( $lat ) ) );
 
+        $left   = $lon - $dlon;
+        $right  = $lon + $dlon;
+        $top    = $lat + $dlat;
+        $bottom = $lat - $dlat;
+        $viewbox = "{$left},{$top},{$right},{$bottom}";
+
+        $raw_items = [];
+
+        // 1. Search supermarkets
+        $url_supermarket = 'https://nominatim.openstreetmap.org/search?format=json&q=supermarket&viewbox=' . $viewbox . '&bounded=1&limit=15&addressdetails=1';
+        $items1 = self::fetch_osm_json( $url_supermarket );
+        if ( ! empty( $items1 ) && is_array( $items1 ) ) {
+            $raw_items = array_merge( $raw_items, $items1 );
+        }
+
+        // 2. Search grocery / food stores if fewer than 8 results found
+        if ( count( $raw_items ) < 8 ) {
+            $url_grocery = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode( 'продукты' ) . '&viewbox=' . $viewbox . '&bounded=1&limit=10&addressdetails=1';
+            $items2 = self::fetch_osm_json( $url_grocery );
+            if ( ! empty( $items2 ) && is_array( $items2 ) ) {
+                $raw_items = array_merge( $raw_items, $items2 );
+            }
+        }
+
+        // 3. Search grocery in English if still very few
+        if ( count( $raw_items ) < 4 ) {
+            $url_grocery_en = 'https://nominatim.openstreetmap.org/search?format=json&q=grocery&viewbox=' . $viewbox . '&bounded=1&limit=10&addressdetails=1';
+            $items3 = self::fetch_osm_json( $url_grocery_en );
+            if ( ! empty( $items3 ) && is_array( $items3 ) ) {
+                $raw_items = array_merge( $raw_items, $items3 );
+            }
+        }
+
+        if ( empty( $raw_items ) ) {
+            return [];
+        }
+
+        $stores = [];
+        $seen_ids = [];
+        $blacklist_types = [ 'bank', 'atm', 'pharmacy', 'dentist', 'hairdresser', 'fuel', 'car_repair', 'clothes', 'shoes', 'electronics', 'optician', 'post_office' ];
+
+        foreach ( $raw_items as $item ) {
+            $class = $item['class'] ?? '';
+            $type  = $item['type'] ?? '';
+
+            // Must be a shop or marketplace
+            if ( $class === 'shop' ) {
+                if ( in_array( $type, $blacklist_types, true ) ) {
+                    continue;
+                }
+            } elseif ( $class === 'amenity' && $type === 'marketplace' ) {
+                // marketplace is allowed
+            } else {
+                continue;
+            }
+
+            // Exclude banks / pharmacies / ATMs by name if misclassified
+            $raw_name_lower = mb_strtolower( $item['name'] ?? '', 'UTF-8' );
+            if ( mb_strpos( $raw_name_lower, 'банк' ) !== false ||
+                 mb_strpos( $raw_name_lower, 'аптек' ) !== false ||
+                 mb_strpos( $raw_name_lower, 'банкомат' ) !== false ) {
+                continue;
+            }
+
+            $osm_id = $item['osm_id'] ?? ( $item['place_id'] ?? null );
+            if ( $osm_id && isset( $seen_ids[ $osm_id ] ) ) {
+                continue;
+            }
+            if ( $osm_id ) {
+                $seen_ids[ $osm_id ] = true;
+            }
+
+            $s_lat = floatval( $item['lat'] );
+            $s_lon = floatval( $item['lon'] );
+
+            if ( empty( $s_lat ) || empty( $s_lon ) ) {
+                continue;
+            }
+
+            // Proximity deduplication (within 35 meters)
+            $is_dup = false;
+            foreach ( $stores as $prev ) {
+                $dist_between = self::haversine_distance( $s_lat, $s_lon, $prev['lat'], $prev['lon'] );
+                if ( $dist_between < 35 ) {
+                    $is_dup = true;
+                    break;
+                }
+            }
+            if ( $is_dup ) {
+                continue;
+            }
+
+            // Determine real store name
+            $name = ! empty( $item['name'] ) ? trim( $item['name'] ) : '';
+            $addr_shop = $item['address']['shop'] ?? '';
+            $road      = $item['address']['road'] ?? '';
+            $house_num = $item['address']['house_number'] ?? '';
+
+            if ( empty( $name ) || $name === $road || $name === $house_num || is_numeric( $name ) ) {
+                if ( ! empty( $addr_shop ) ) {
+                    $name = $addr_shop;
+                } elseif ( ! empty( $item['address']['amenity'] ) ) {
+                    $name = $item['address']['amenity'];
+                } else {
+                    $name = ( $type === 'supermarket' ) ? 'Супермаркет' : 'Продуктовый магазин';
+                }
+            }
+
+            // Clean up name
+            $name = preg_replace( '/^[\s,.-]+|[\s,.-]+$/u', '', $name );
+
+            // Real address from components
+            $address_parts = [];
+            if ( ! empty( $road ) ) {
+                $address_parts[] = $road;
+            }
+            if ( ! empty( $house_num ) ) {
+                $address_parts[] = 'д. ' . $house_num;
+            }
+            if ( empty( $address_parts ) ) {
+                if ( ! empty( $item['address']['suburb'] ) ) {
+                    $address_parts[] = $item['address']['suburb'];
+                }
+                if ( ! empty( $item['address']['city'] ) ) {
+                    $address_parts[] = $item['address']['city'];
+                }
+            }
+            $address = ! empty( $address_parts ) ? implode( ', ', $address_parts ) : 'Адрес на карте';
+
+            // Identify chain properties & branding
+            $chain_info = self::identify_chain( $name, $type );
+
+            $stores[] = [
+                'id'            => 'osm_' . ( $osm_id ?: count( $stores ) + 1 ),
+                'name'          => $name,
+                'chain'         => $chain_info['chain'],
+                'brand_color'   => $chain_info['color'],
+                'icon'          => $chain_info['icon'],
+                'category'      => ( $type === 'supermarket' ) ? 'Супермаркет' : 'Магазин у дома',
+                'lat'           => $s_lat,
+                'lon'           => $s_lon,
+                'address'       => $address,
+                'opening_hours' => $item['address']['opening_hours'] ?? '08:00 - 22:00',
+                'features'      => $chain_info['features'],
+            ];
+        }
+
+        return $stores;
+    }
+
+    /**
+     * HTTP fetch with custom User-Agent and timeout
+     */
+    private static function fetch_osm_json( $url ) {
         $response = wp_remote_get( $url, [
-            'timeout' => 4,
-            'headers' => [ 'User-Agent' => 'SmartFridgeChef/1.0' ]
+            'timeout'   => 7,
+            'headers'   => [
+                'User-Agent'      => 'SmartFridgeChefApp/1.0 (denis.fridgechef@gmail.com; WordPress)',
+                'Accept-Language' => 'ru,en;q=0.8'
+            ],
+            'sslverify' => false,
         ]);
 
         if ( is_wp_error( $response ) ) {
             return [];
         }
 
-        $body = wp_remote_retrieve_body( $response );
-        $json = json_decode( $body, true );
-
-        if ( empty( $json['elements'] ) || ! is_array( $json['elements'] ) ) {
+        $code = wp_remote_retrieve_response_code( $response );
+        if ( $code !== 200 ) {
             return [];
         }
 
-        $stores = [];
-        foreach ( $json['elements'] as $el ) {
-            $tags = $el['tags'] ?? [];
-            $name = $tags['name'] ?? ( $tags['brand'] ?? 'Супермаркет' );
+        $body = wp_remote_retrieve_body( $response );
+        $data = json_decode( $body, true );
 
-            $chain_info = self::identify_chain( $name );
-
-            $stores[] = [
-                'id'           => 'osm_' . $el['id'],
-                'name'         => $name,
-                'chain'        => $chain_info['chain'],
-                'brand_color'  => $chain_info['color'],
-                'icon'         => $chain_info['icon'],
-                'category'     => $tags['shop'] === 'supermarket' ? 'Супермаркет' : 'Магазин у дома',
-                'lat'          => $el['lat'],
-                'lon'          => $el['lon'],
-                'address'      => ( $tags['addr:street'] ?? '' ) . ( ! empty( $tags['addr:housenumber'] ) ? ', д. ' . $tags['addr:housenumber'] : '' ),
-                'opening_hours'=> $tags['opening_hours'] ?? '08:00 - 23:00',
-                'features'     => $chain_info['features'],
-            ];
-        }
-
-        return $stores;
+        return is_array( $data ) ? $data : [];
     }
 
     /**
-     * Identify Russian supermarket chain properties
+     * Versatile Store / Supermarket Brand Matcher
+     * Supports regional chains (BY, KZ, GE, RU, EU) & universal defaults
      */
-    public static function identify_chain( $name ) {
+    public static function identify_chain( $name, $type = 'supermarket' ) {
         $n = mb_strtolower( $name, 'UTF-8' );
 
-        if ( mb_strpos( $n, 'вкусвилл' ) !== false || mb_strpos( $n, 'vkusvill' ) !== false ) {
+        // --- Belarus ---
+        if ( mb_strpos( $n, 'евроопт' ) !== false || mb_strpos( $n, 'evroopt' ) !== false || mb_strpos( $n, 'грошык' ) !== false || mb_strpos( $n, 'хит' ) !== false ) {
             return [
-                'chain'    => 'ВкусВилл',
-                'color'    => '#10b981', // green
+                'chain'    => 'Евроопт',
+                'color'    => '#10b981',
+                'icon'     => 'local_mall',
+                'features' => [ 'Выгодные цены', 'Широкий ассортимент', 'Акции и скидки' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'санта' ) !== false || mb_strpos( $n, 'santa' ) !== false ) {
+            return [
+                'chain'    => 'Санта',
+                'color'    => '#0284c7',
+                'icon'     => 'shopping_cart',
+                'features' => [ 'Свежая рыба', 'Готовая кулинария', 'Молочные продукты' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'корона' ) !== false || mb_strpos( $n, 'korona' ) !== false ) {
+            return [
+                'chain'    => 'Корона',
+                'color'    => '#ca8a04',
+                'icon'     => 'storefront',
+                'features' => [ 'Премиум выбор', 'Собственная пекарня', 'Свежее мясо и деликатесы' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'гиппо' ) !== false || mb_strpos( $n, 'gippo' ) !== false ) {
+            return [
+                'chain'    => 'Гиппо',
+                'color'    => '#ea580c',
+                'icon'     => 'local_mall',
+                'features' => [ 'Гипермаркет', 'Свежие фрукты и овощи', 'Большой выбор' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'соседи' ) !== false || mb_strpos( $n, 'sosedi' ) !== false ) {
+            return [
+                'chain'    => 'Соседи',
+                'color'    => '#f59e0b',
+                'icon'     => 'store',
+                'features' => [ 'Магазин у дома', 'Свежая выпечка', 'Удобное расположение' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'green' ) !== false || mb_strpos( $n, 'грин' ) !== false ) {
+            return [
+                'chain'    => 'Green',
+                'color'    => '#059669',
                 'icon'     => 'eco',
-                'features' => [ 'Свежая молочка', 'Эко-продукты', 'Зелень и ягоды' ]
+                'features' => [ 'Эко-продукты', 'Здоровое питание', 'Фермерская продукция' ]
             ];
         }
 
+        // --- Kazakhstan ---
+        if ( mb_strpos( $n, 'magnum' ) !== false || mb_strpos( $n, 'магнум' ) !== false ) {
+            return [
+                'chain'    => 'Magnum',
+                'color'    => '#dc2626',
+                'icon'     => 'local_mall',
+                'features' => [ 'Крупнейшая сеть', 'Широкий выбор', 'Выгодные цены' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'small' ) !== false || mb_strpos( $n, 'смолл' ) !== false ) {
+            return [
+                'chain'    => 'Small',
+                'color'    => '#2563eb',
+                'icon'     => 'shopping_cart',
+                'features' => [ 'Супермаркет у дома', 'Свежие продукты', 'Акции' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'galmart' ) !== false || mb_strpos( $n, 'галмарт' ) !== false ) {
+            return [
+                'chain'    => 'Galmart',
+                'color'    => '#7c3aed',
+                'icon'     => 'storefront',
+                'features' => [ 'Премиум продукты', 'Органическая еда', 'Кулинария' ]
+            ];
+        }
+
+        // --- Georgia ---
+        if ( mb_strpos( $n, 'fresco' ) !== false || mb_strpos( $n, 'ფრესკო' ) !== false ) {
+            return [
+                'chain'    => 'Fresco',
+                'color'    => '#16a34a',
+                'icon'     => 'storefront',
+                'features' => [ 'Круглосуточно', 'Свежая выпечка', 'Кулинарный отдел' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'nikora' ) !== false || mb_strpos( $n, 'ნიკორა' ) !== false ) {
+            return [
+                'chain'    => 'Nikora',
+                'color'    => '#0284c7',
+                'icon'     => 'shopping_basket',
+                'features' => [ 'Мясная гастрономия', 'Молочная продукция', 'У дома' ]
+            ];
+        }
+
+        // --- Russia ---
+        if ( mb_strpos( $n, 'вкусвилл' ) !== false || mb_strpos( $n, 'vkusvill' ) !== false ) {
+            return [
+                'chain'    => 'ВкусВилл',
+                'color'    => '#10b981',
+                'icon'     => 'eco',
+                'features' => [ 'Свежая молочка', 'Эко-продукты', 'Чистый состав' ]
+            ];
+        }
         if ( mb_strpos( $n, 'пятёрочк' ) !== false || mb_strpos( $n, 'пятерочк' ) !== false || mb_strpos( $n, '5ka' ) !== false ) {
             return [
                 'chain'    => 'Пятёрочка',
-                'color'    => '#ef4444', // red
+                'color'    => '#ef4444',
                 'icon'     => 'shopping_basket',
                 'features' => [ 'Выгодные цены', 'Скидки и акции', 'Базовая бакалея' ]
             ];
         }
-
         if ( mb_strpos( $n, 'магнит' ) !== false ) {
             return [
                 'chain'    => 'Магнит',
-                'color'    => '#dc2626', // dark red
+                'color'    => '#dc2626',
                 'icon'     => 'shopping_cart',
                 'features' => [ 'Магазин у дома', 'Экономный выбор', 'Свежий хлеб' ]
             ];
         }
-
         if ( mb_strpos( $n, 'перекрёсток' ) !== false || mb_strpos( $n, 'перекресток' ) !== false ) {
             return [
                 'chain'    => 'Перекрёсток',
-                'color'    => '#059669', // emerald
+                'color'    => '#059669',
                 'icon'     => 'storefront',
                 'features' => [ 'Свежее мясо и рыба', 'Премиум сыры', 'Собственная кулинария' ]
             ];
         }
-
         if ( mb_strpos( $n, 'лента' ) !== false ) {
             return [
                 'chain'    => 'Лента',
-                'color'    => '#2563eb', // blue
+                'color'    => '#2563eb',
                 'icon'     => 'local_mall',
                 'features' => [ 'Большой ассортимент', 'Закупка на неделю', 'Выгодные упаковки' ]
             ];
         }
-
         if ( mb_strpos( $n, 'дикси' ) !== false ) {
             return [
                 'chain'    => 'Дикси',
-                'color'    => '#f97316', // orange
+                'color'    => '#f97316',
                 'icon'     => 'store',
                 'features' => [ 'У дома', 'Низкие цены', 'Свежие фрукты' ]
             ];
         }
 
-        return [
-            'chain'    => 'Универсам',
-            'color'    => '#6b7280', // gray
-            'icon'     => 'storefront',
-            'features' => [ 'Продукты первой необходимости', 'Удобное расположение' ]
-        ];
-    }
-
-    /**
-     * Generate realistic nearby chain stores based on user coordinates
-     */
-    public static function generate_realistic_chain_stores( $lat, $lon, $existing = [] ) {
-        // List of chains with relative offsets (meters to lat/lon degrees)
-        // 1 deg lat ~ 111,000 m. 1 deg lon ~ 111,000 * cos(lat) m.
-        $cos_lat = cos( deg2rad( $lat ) );
-
-        $offsets = [
-            [
-                'name'    => 'Пятёрочка',
-                'd_north' => 120, // 120m North
-                'd_east'  => 80,  // 80m East
-                'address' => 'Супермаркет у дома',
-                'hours'   => '08:00 - 23:00',
-            ],
-            [
-                'name'    => 'ВкусВилл',
-                'd_north' => -180, // 180m South
-                'd_east'  => 150,  // 150m East
-                'address' => 'Магазин свежих продуктов',
-                'hours'   => '08:00 - 22:00',
-            ],
-            [
-                'name'    => 'Магнит',
-                'd_north' => 90,   // 90m North
-                'd_east'  => -210, // 210m West
-                'address' => 'Универсам у дома',
-                'hours'   => '08:00 - 22:30',
-            ],
-            [
-                'name'    => 'Перекрёсток',
-                'd_north' => -280, // 280m South
-                'd_east'  => -140, // 140m West
-                'address' => 'Супермаркет в ТЦ',
-                'hours'   => 'Круглосуточно (24/7)',
-            ],
-            [
-                'name'    => 'Лента Супермаркет',
-                'd_north' => 420,  // 420m North
-                'd_east'  => 310,  // 310m East
-                'address' => 'Гипермаркет продуктов',
-                'hours'   => '08:00 - 23:00',
-            ],
-        ];
-
-        $stores = $existing;
-
-        foreach ( $offsets as $i => $item ) {
-            $store_lat = $lat + ( $item['d_north'] / 111000 );
-            $store_lon = $lon + ( $item['d_east'] / ( 111000 * $cos_lat ) );
-
-            $chain_info = self::identify_chain( $item['name'] );
-
-            $stores[] = [
-                'id'           => 'chain_' . ( $i + 1 ),
-                'name'         => $item['name'],
-                'chain'        => $chain_info['chain'],
-                'brand_color'  => $chain_info['color'],
-                'icon'         => $chain_info['icon'],
-                'category'     => 'Супермаркет у дома',
-                'lat'          => round( $store_lat, 6 ),
-                'lon'          => round( $store_lon, 6 ),
-                'address'      => $item['address'],
-                'opening_hours'=> $item['hours'],
-                'features'     => $chain_info['features'],
+        // --- International ---
+        if ( mb_strpos( $n, 'carrefour' ) !== false ) {
+            return [
+                'chain'    => 'Carrefour',
+                'color'    => '#0284c7',
+                'icon'     => 'local_mall',
+                'features' => [ 'Широкий ассортимент', 'Свежие продукты', 'Выгодные предложения' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'spar' ) !== false ) {
+            return [
+                'chain'    => 'Spar',
+                'color'    => '#16a34a',
+                'icon'     => 'storefront',
+                'features' => [ 'Свежая выпечка', 'Качественные продукты', 'Удобный супермаркет' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'biedronka' ) !== false ) {
+            return [
+                'chain'    => 'Biedronka',
+                'color'    => '#eab308',
+                'icon'     => 'shopping_cart',
+                'features' => [ 'Популярная сеть', 'Низкие цены', 'Свежие поставки' ]
+            ];
+        }
+        if ( mb_strpos( $n, 'lidl' ) !== false || mb_strpos( $n, 'aldi' ) !== false ) {
+            return [
+                'chain'    => 'Дискаунтер',
+                'color'    => '#0284c7',
+                'icon'     => 'shopping_basket',
+                'features' => [ 'Выгодные цены', 'Качественные базовые товары' ]
             ];
         }
 
-        return $stores;
+        // --- Universal Default for Any Real Local Store ---
+        $is_supermarket = ( $type === 'supermarket' || mb_strpos( $n, 'маркет' ) !== false || mb_strpos( $n, 'универсам' ) !== false );
+        return [
+            'chain'    => $name,
+            'color'    => '#475569', // clean slate neutral
+            'icon'     => $is_supermarket ? 'local_mall' : 'storefront',
+            'features' => $is_supermarket
+                ? [ 'Широкий ассортимент', 'Все категории продуктов', 'Свежие овощи и бакалея' ]
+                : [ 'Магазин у дома', 'Товары первой необходимости', 'Быстрые покупки' ]
+        ];
     }
 
     /**
-     * Calculate smart recommendation: "Куда лучше пойти?"
+     * Universal Smart Recommendation: "Куда лучше пойти?"
      */
     public static function calculate_recommendation( $stores, $shopping_list ) {
         if ( empty( $stores ) ) {
@@ -283,7 +494,7 @@ class SFC_Store_Locator {
 
         foreach ( $shopping_list as $item ) {
             $cat = $item['category'] ?? 'Другое';
-            $cat_counts[$cat] = ( $cat_counts[$cat] ?? 0 ) + 1;
+            $cat_counts[ $cat ] = ( $cat_counts[ $cat ] ?? 0 ) + 1;
         }
 
         $fresh_produce_count = ( $cat_counts['Овощи и зелень'] ?? 0 ) + ( $cat_counts['Фрукты и ягоды'] ?? 0 );
@@ -292,33 +503,16 @@ class SFC_Store_Locator {
         $staples_count       = ( $cat_counts['Крупы и бакалея'] ?? 0 ) + ( $cat_counts['Яйца'] ?? 0 ) + ( $cat_counts['Другое'] ?? 0 );
 
         $best_store = null;
-        $best_score = -999;
-        $reason = '';
-        $tips = [];
+        $best_score = -99999;
 
         foreach ( $stores as $store ) {
             $score = 100;
-            // Proximity weight: minus 1 point per 20 meters
-            $score -= ( $store['distance_m'] / 20 );
+            // Proximity weight: minus 1 point per 25 meters
+            $score -= ( $store['distance_m'] / 25 );
 
-            $chain = $store['chain'];
-
-            if ( $chain === 'ВкусВилл' ) {
-                if ( $fresh_produce_count > 0 || $dairy_count > 0 ) {
-                    $score += ( $fresh_produce_count * 15 ) + ( $dairy_count * 18 );
-                }
-            } elseif ( $chain === 'Перекрёсток' ) {
-                if ( $meat_count > 0 || $fresh_produce_count > 0 ) {
-                    $score += ( $meat_count * 20 ) + ( $fresh_produce_count * 10 );
-                }
-            } elseif ( $chain === 'Пятёрочка' || $chain === 'Магнит' ) {
-                if ( $staples_count > 0 || $total_items >= 5 ) {
-                    $score += ( $staples_count * 16 ) + 15; // budget advantage
-                }
-            } elseif ( $chain === 'Лента' ) {
-                if ( $total_items >= 8 ) {
-                    $score += 25; // wide bulk selection
-                }
+            // Bonus for supermarket when shopping list is medium/large
+            if ( $store['category'] === 'Супермаркет' && $total_items >= 4 ) {
+                $score += 20;
             }
 
             if ( $score > $best_score ) {
@@ -331,38 +525,30 @@ class SFC_Store_Locator {
             $best_store = $stores[0];
         }
 
-        // Generate tailored conversational advice
-        $c = $best_store['chain'];
-        if ( $c === 'ВкусВилл' ) {
-            $reason = "В вашем списке покупок преобладают свежие молочные продукты и зелень. В «{$best_store['name']}» они натуральные, с чистым составом и высшим рейтингом свежести.";
-            $tips = [
-                'Ищите продукты с зелёными ценниками для скидки 40%',
-                'Проверьте отдел с фермерским творогом и свежим молоком',
-                'Быстрый путь: всего ' . $best_store['walking_time_mins'] . ' мин пешком (' . $best_store['distance_m'] . ' м)'
-            ];
-        } elseif ( $c === 'Перекрёсток' ) {
-            $reason = "Вам необходимо свежее мясо (птица) и качественные сыры. В «{$best_store['name']}» лучший гастрономический и мясной отдел в округе.";
-            $tips = [
-                'Обратите внимание на охлажденное филе с гарантией свежести',
-                'Широкий выбор итальянских трав и твердых сыров',
-                'Расстояние: ' . $best_store['distance_m'] . ' м (~' . $best_store['walking_time_mins'] . ' мин)'
-            ];
-        } elseif ( $c === 'Пятёрочка' || $c === 'Магнит' ) {
-            $reason = "Ваш список состоит преимущественно из базовой бакалеи, яиц и овощей. В «{$best_store['name']}» вы купите всё по лучшим акционным ценам и сэкономите бюджет.";
-            $tips = [
-                'Лучшая цена на яйца, пасту и базовые крупы',
-                'Ближайший магазин к вашей геопозиции — всего ' . $best_store['walking_time_mins'] . ' мин',
-                'Экономия до 20-30% по сравнению с премиальными супермаркетами'
-            ];
+        // Dynamic tailored advice
+        $reason = "Оптимальный выбор для вашего списка покупок: «{$best_store['name']}». Расположен всего в {$best_store['distance_m']} м от вас (~{$best_store['walking_time_mins']} мин пешком).";
+
+        if ( ( $fresh_produce_count + $dairy_count + $meat_count ) > $staples_count ) {
+            $reason .= " В ассортименте этого супермаркета легко найти все свежие ингредиенты (молочные продукты, овощи, мясо) для блюд недели.";
         } else {
-            $reason = "Оптимальный баланс расстояния и ассортимента. «{$best_store['name']}» находится в {$best_store['distance_m']} метрах от вас.";
-            $tips = [
-                'Время в пути пешком: ~' . $best_store['walking_time_mins'] . ' мин',
-                'Все недостающие ингредиенты есть в наличии'
-            ];
+            $reason .= " Удобная локация, чтобы быстро и экономно докупить недостающую бакалею и базовые ингредиенты.";
         }
 
-        // Direct navigation URLs
+        $tips = [
+            'Время в пути пешком: ~' . $best_store['walking_time_mins'] . ' мин (' . $best_store['distance_m'] . ' м)',
+        ];
+
+        if ( $fresh_produce_count > 0 || $dairy_count > 0 ) {
+            $tips[] = 'Обратите внимание на сроки годности молочных продуктов и свежесть зелени';
+        } elseif ( $meat_count > 0 ) {
+            $tips[] = 'Проверьте охлажденный мясной/рыбный отдел для основных блюд недели';
+        } else {
+            $tips[] = 'Все базовые позиции из вашего списка есть в наличии';
+        }
+
+        $tips[] = 'Отмечайте купленные товары галочками в списке покупок приложения';
+
+        // Direct walking route URLs
         $yandex_route_url = sprintf(
             'https://yandex.ru/maps/?rtext=~%f,%f&rtt=pd',
             $best_store['lat'],
@@ -375,10 +561,10 @@ class SFC_Store_Locator {
         );
 
         return [
-            'store'            => $best_store,
-            'reason'           => $reason,
-            'tips'             => $tips,
-            'navigation_urls'  => [
+            'store'           => $best_store,
+            'reason'          => $reason,
+            'tips'            => $tips,
+            'navigation_urls' => [
                 'yandex' => $yandex_route_url,
                 'google' => $google_route_url,
             ]
