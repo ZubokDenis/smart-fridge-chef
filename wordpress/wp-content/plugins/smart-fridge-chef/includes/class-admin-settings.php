@@ -63,10 +63,13 @@ class SFC_Admin_Settings {
             return;
         }
 
-        $provider        = get_option( 'sfc_ai_provider', 'ollama_cloud' );
-        $ollama_url      = get_option( 'sfc_ollama_url', '' );
+        $provider       = get_option( 'sfc_ai_provider', 'ollama_cloud' );
+        $ollama_url     = get_option( 'sfc_ollama_url', 'https://api.ollama.com' );
+        if ( empty( $ollama_url ) || $ollama_url === 'admin' || strpos( $ollama_url, 'http' ) !== 0 ) {
+            $ollama_url = 'https://api.ollama.com';
+        }
         $ollama_api_key  = get_option( 'sfc_ollama_api_key', '' );
-        $ollama_model    = get_option( 'sfc_ollama_model', 'llama3.2-vision' );
+        $ollama_model    = get_option( 'sfc_ollama_model', 'deepseek-v4.1-flash' );
         $claude_key      = get_option( 'sfc_claude_api_key', '' );
         $claude_base_url = get_option( 'sfc_claude_base_url', 'https://api.anthropic.com' );
         $claude_model    = get_option( 'sfc_claude_model', 'claude-3-5-sonnet-20241022' );
@@ -88,7 +91,11 @@ class SFC_Admin_Settings {
             </div>
 
             <div style="background: #ffffff; border: 1px solid #dadce0; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-                <form method="post" action="options.php" id="sfc-admin-settings-form">
+                <form method="post" action="options.php" id="sfc-admin-settings-form" autocomplete="off">
+                    <!-- Dummy inputs to absorb browser username/password autofill -->
+                    <input type="text" name="fake_user" style="display:none" tabindex="-1" autocomplete="off" />
+                    <input type="password" name="fake_pass" style="display:none" tabindex="-1" autocomplete="new-password" />
+
                     <?php settings_fields( 'sfc_settings_group' ); ?>
                     <?php do_settings_sections( 'sfc_settings_group' ); ?>
 
@@ -100,7 +107,7 @@ class SFC_Admin_Settings {
                             </th>
                             <td>
                                 <select name="sfc_ai_provider" id="sfc_ai_provider_select" style="min-width: 320px; padding: 4px 8px; font-size: 14px;">
-                                    <option value="ollama_cloud" <?php selected( $provider, 'ollama_cloud' ); ?>>☁️ Ollama Cloud / Удаленный сервер</option>
+                                    <option value="ollama_cloud" <?php selected( $provider, 'ollama_cloud' ); ?>>☁️ Ollama Cloud (https://api.ollama.com или свой сервер)</option>
                                     <option value="claude" <?php selected( $provider, 'claude' ); ?>>🧠 Anthropic Claude (claude-3-5-sonnet)</option>
                                     <option value="gemini" <?php selected( $provider, 'gemini' ); ?>>✨ Google Gemini (1.5 / 2.0 Flash)</option>
                                     <option value="builtin" <?php selected( $provider, 'builtin' ); ?>>⚙️ Встроенный экспертный движок (автономный)</option>
@@ -113,22 +120,27 @@ class SFC_Admin_Settings {
                         <tr class="sfc-provider-row sfc-row-ollama">
                             <th scope="row" style="font-weight: 600; color: #202124;">Ollama Cloud Endpoint URL</th>
                             <td>
-                                <input type="text" name="sfc_ollama_url" value="<?php echo esc_attr( $ollama_url ); ?>" style="width: 100%; max-width: 480px;" placeholder="https://your-ollama-host.com или https://...runpod.net" />
-                                <p class="description">Адрес вашего облачного или удаленного Ollama сервера (например, <code>https://api.yourdomain.com</code> или <code>https://...</code>).</p>
+                                <div style="display: flex; gap: 8px; align-items: center; max-width: 600px;">
+                                    <input type="url" name="sfc_ollama_url" id="sfc_ollama_url_input" value="<?php echo esc_attr( $ollama_url ); ?>" style="flex: 1;" placeholder="https://api.ollama.com" autocomplete="off" />
+                                    <button type="button" class="button" id="sfc-btn-set-default-ollama" title="Установить официальный URL Ollama Cloud">
+                                        Официальный URL
+                                    </button>
+                                </div>
+                                <p class="description">Официальный облачный эндпоинт: <code>https://api.ollama.com</code> (или адрес вашего собственного удаленного хоста).</p>
                             </td>
                         </tr>
                         <tr class="sfc-provider-row sfc-row-ollama">
                             <th scope="row" style="font-weight: 600; color: #202124;">Ollama Cloud API Key / Token</th>
                             <td>
-                                <input type="password" name="sfc_ollama_api_key" value="<?php echo esc_attr( $ollama_api_key ); ?>" style="width: 100%; max-width: 480px;" placeholder="Bearer токен или пароль (если требуется)" />
-                                <p class="description">Передается в заголовке <code>Authorization: Bearer &lt;token&gt;</code>. Оставьте пустым, если ваш сервер без авторизации.</p>
+                                <input type="password" name="sfc_ollama_api_key" value="<?php echo esc_attr( $ollama_api_key ); ?>" style="width: 100%; max-width: 480px;" placeholder="Bearer токен (если требуется)" autocomplete="new-password" />
+                                <p class="description">Передается в заголовке <code>Authorization: Bearer &lt;token&gt;</code>. Для публичных моделей можно оставить пустым.</p>
                             </td>
                         </tr>
                         <tr class="sfc-provider-row sfc-row-ollama">
                             <th scope="row" style="font-weight: 600; color: #202124;">Ollama Модель</th>
                             <td>
-                                <input type="text" name="sfc_ollama_model" value="<?php echo esc_attr( $ollama_model ); ?>" style="width: 100%; max-width: 480px;" placeholder="llama3.2-vision" />
-                                <p class="description">Название модели на вашем Ollama Cloud, например: <code>llama3.2-vision</code>, <code>llava</code>, <code>qwen2-vl</code>, <code>claude</code> (proxy), <code>llama3</code>.</p>
+                                <input type="text" name="sfc_ollama_model" value="<?php echo esc_attr( $ollama_model ); ?>" style="width: 100%; max-width: 480px;" placeholder="deepseek-v4.1-flash" autocomplete="off" />
+                                <p class="description">Модель на Ollama Cloud, например: <code>deepseek-v4.1-flash</code>, <code>gemma4:31b</code>, <code>mistral-large-4</code>, <code>llama3.2-vision</code>, <code>gpt-oss:20b</code>.</p>
                             </td>
                         </tr>
 
@@ -210,6 +222,14 @@ class SFC_Admin_Settings {
 
             var testBtn = document.getElementById('sfc-btn-test-connection');
             var resultEl = document.getElementById('sfc-test-result');
+            var setDefaultBtn = document.getElementById('sfc-btn-set-default-ollama');
+            var urlInput = document.getElementById('sfc_ollama_url_input');
+
+            if (setDefaultBtn && urlInput) {
+                setDefaultBtn.addEventListener('click', function() {
+                    urlInput.value = 'https://api.ollama.com';
+                });
+            }
 
             testBtn.addEventListener('click', function() {
                 resultEl.innerHTML = '<span style="color:#5f6368;">Проверка связи с облачным сервером...</span>';

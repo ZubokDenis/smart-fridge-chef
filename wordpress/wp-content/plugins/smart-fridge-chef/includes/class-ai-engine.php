@@ -14,11 +14,16 @@ class SFC_AI_Engine {
      * Get active AI provider configuration
      */
     public static function get_ai_config() {
+        $raw_url = trim( get_option( 'sfc_ollama_url', 'https://api.ollama.com' ) );
+        if ( empty( $raw_url ) || $raw_url === 'admin' || strpos( $raw_url, 'http' ) !== 0 ) {
+            $raw_url = 'https://api.ollama.com';
+        }
+
         return [
             'provider'        => get_option( 'sfc_ai_provider', 'ollama_cloud' ), // 'ollama_cloud', 'claude', 'gemini', 'builtin'
-            'ollama_url'      => get_option( 'sfc_ollama_url', 'https://your-ollama-cloud-host.com' ),
+            'ollama_url'      => rtrim( $raw_url, '/' ),
             'ollama_api_key'  => get_option( 'sfc_ollama_api_key', '' ),
-            'ollama_model'    => get_option( 'sfc_ollama_model', 'llama3.2-vision' ),
+            'ollama_model'    => get_option( 'sfc_ollama_model', 'deepseek-v4.1-flash' ),
             'claude_key'      => get_option( 'sfc_claude_api_key', '' ),
             'claude_base_url' => get_option( 'sfc_claude_base_url', 'https://api.anthropic.com' ),
             'claude_model'    => get_option( 'sfc_claude_model', 'claude-3-5-sonnet-20241022' ),
