@@ -31,6 +31,18 @@ function sfc_init_plugin() {
     SFC_Admin_Settings::init();
 }
 
+// Disable WordPress default emoji scripts and styles
+add_action( 'init', 'sfc_disable_wp_emojis' );
+function sfc_disable_wp_emojis() {
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+    remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+    remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+    remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+}
+
 // Register frontend assets
 add_action( 'wp_enqueue_scripts', 'sfc_enqueue_assets' );
 function sfc_enqueue_assets() {
@@ -44,11 +56,15 @@ function sfc_enqueue_assets() {
     wp_enqueue_style( 'leaflet-css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', [], '1.9.4' );
     wp_enqueue_script( 'leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', [], '1.9.4', true );
 
+    // Dynamic cache busting so browser always gets the newest version
+    $css_ver = file_exists( SFC_PATH . 'assets/css/app.css' ) ? filemtime( SFC_PATH . 'assets/css/app.css' ) : time();
+    $js_ver  = file_exists( SFC_PATH . 'assets/js/app.js' ) ? filemtime( SFC_PATH . 'assets/js/app.js' ) : time();
+
     // Custom App CSS
-    wp_enqueue_style( 'sfc-app-css', SFC_URL . 'assets/css/app.css', [ 'google-material-symbols', 'leaflet-css' ], SFC_VERSION );
+    wp_enqueue_style( 'sfc-app-css', SFC_URL . 'assets/css/app.css', [ 'google-material-symbols', 'leaflet-css' ], $css_ver );
 
     // Custom App JS
-    wp_enqueue_script( 'sfc-app-js', SFC_URL . 'assets/js/app.js', [ 'leaflet-js' ], SFC_VERSION, true );
+    wp_enqueue_script( 'sfc-app-js', SFC_URL . 'assets/js/app.js', [ 'leaflet-js' ], $js_ver, true );
 
     $ai_config = SFC_AI_Engine::get_ai_config();
     $provider = $ai_config['provider'];
@@ -58,12 +74,16 @@ function sfc_enqueue_assets() {
     if ( $provider === 'gemini' ) $ai_label = 'Google Gemini (' . $ai_config['gemini_model'] . ')';
     if ( $provider === 'builtin' ) $ai_label = 'Встроенный экспертный интеллект';
 
+    $stored_city = get_option( 'sfc_default_city', '' );
+    $stored_lat  = get_option( 'sfc_default_lat', '' );
+    $stored_lon  = get_option( 'sfc_default_lon', '' );
+
     wp_localize_script( 'sfc-app-js', 'sfcConfig', [
         'restUrl'      => esc_url_raw( rest_url( 'fridge-chef/v1/' ) ),
         'nonce'        => wp_create_nonce( 'wp_rest' ),
-        'defaultCity'  => get_option( 'sfc_default_city', 'Москва' ),
-        'defaultLat'   => floatval( get_option( 'sfc_default_lat', 55.7558 ) ),
-        'defaultLon'   => floatval( get_option( 'sfc_default_lon', 37.6173 ) ),
+        'defaultCity'  => ! empty( $stored_city ) ? $stored_city : '',
+        'defaultLat'   => ! empty( $stored_lat ) ? floatval( $stored_lat ) : null,
+        'defaultLon'   => ! empty( $stored_lon ) ? floatval( $stored_lon ) : null,
         'siteUrl'      => home_url(),
         'aiProvider'   => $provider,
         'aiLabel'      => $ai_label,

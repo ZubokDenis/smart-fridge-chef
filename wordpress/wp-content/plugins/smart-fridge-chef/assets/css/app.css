@@ -1,46 +1,41 @@
 /**
  * Smart Fridge Chef - Clean Standard UI
- * Typography: Lora (Headings), Montserrat (UI, Controls, Chips, Badges), Roboto (Body, Text)
- * Design Language: Google Material Design 3 + Clean Culinary Editorial Publication
+ * Typography: Lora (Headings), Montserrat (UI, Buttons, Navigation), Roboto (Body, Text)
+ * Aesthetics: Google Material 3 + Instagram Web Minimal Publication (No stickers, no AI slop)
  */
 
 :root {
-    --m3-primary: #1a73e8;
-    --m3-primary-hover: #1557b0;
-    --m3-primary-container: #e8f0fe;
-    --m3-on-primary-container: #174ea6;
+    --sfc-primary: #1a73e8;
+    --sfc-primary-hover: #1557b0;
+    --sfc-primary-container: #e8f0fe;
+    --sfc-on-primary-container: #174ea6;
 
-    --m3-surface: #ffffff;
-    --m3-surface-container-low: #f8f9fa;
-    --m3-surface-container: #f1f3f4;
-    --m3-surface-container-high: #e8eaed;
+    --sfc-surface: #ffffff;
+    --sfc-surface-subtle: #f8f9fa;
+    --sfc-surface-alt: #f1f3f4;
+    --sfc-surface-border: #dadce0;
+    --sfc-surface-border-subtle: #e8eaed;
 
-    --m3-outline: #dadce0;
-    --m3-outline-variant: #e0e0e0;
+    --sfc-text-primary: #202124;
+    --sfc-text-secondary: #5f6368;
+    --sfc-text-muted: #80868b;
 
-    --m3-on-surface: #202124;
-    --m3-on-surface-variant: #5f6368;
-    --m3-on-surface-subtle: #80868b;
+    --sfc-green: #137333;
+    --sfc-amber: #b06000;
+    --sfc-red: #d93025;
 
-    --m3-success: #137333;
-    --m3-success-container: #ceead6;
-    --m3-warning: #b06000;
-    --m3-warning-container: #feefc3;
-    --m3-error: #d93025;
-    --m3-error-container: #fad2cf;
+    --sfc-radius-sm: 6px;
+    --sfc-radius-md: 10px;
+    --sfc-radius-lg: 14px;
+    --sfc-radius-full: 9999px;
 
-    --m3-radius-sm: 8px;
-    --m3-radius-md: 12px;
-    --m3-radius-lg: 16px;
-    --m3-radius-full: 9999px;
-
-    --m3-elevation-1: 0 1px 2px 0 rgba(60,64,67,0.15), 0 1px 3px 1px rgba(60,64,67,0.1);
-    --m3-elevation-2: 0 2px 6px 0 rgba(60,64,67,0.15), 0 4px 10px 2px rgba(60,64,67,0.08);
+    --sfc-shadow-1: 0 1px 3px rgba(60,64,67,0.12), 0 1px 2px rgba(60,64,67,0.08);
+    --sfc-shadow-2: 0 2px 6px rgba(60,64,67,0.15), 0 1px 3px rgba(60,64,67,0.08);
 }
 
 .sfc-app-root {
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     background-color: #fafafa;
     max-width: 1220px;
     margin: 16px auto;
@@ -63,6 +58,7 @@
 .sfc-empty-placeholder h3,
 .sfc-places-wrapper h3,
 .sfc-slot-card h4,
+.sfc-location-banner-text h3,
 .sfc-recipe-sheet-title {
     font-family: 'Lora', Georgia, 'Times New Roman', serif;
     letter-spacing: -0.015em;
@@ -73,26 +69,20 @@
 .sfc-btn-m3,
 .sfc-btn-text,
 .sfc-btn-icon,
-.sfc-filter-chip,
-.sfc-chip-item,
+.sfc-btn-subtle,
+.sfc-filter-btn,
 .sfc-counter,
-.sfc-match-chip,
-.sfc-fresh-tag,
-.sfc-qty-tag,
-.sfc-slot-tag,
 .sfc-cal-day-btn,
-.sfc-tag-sm,
 .sfc-data-table th,
 .sfc-rec-engine-tag,
 .sfc-rec-dist-chip,
-.sfc-badge,
-.sfc-feed-category,
-.sfc-slot-status {
+.sfc-recipe-category,
+.sfc-slot-tag {
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     letter-spacing: -0.01em;
 }
 
-p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed-ingredients {
+p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-recipe-availability {
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -108,19 +98,19 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 /* ================= TOP NAVIGATION BAR ================= */
 .sfc-topbar {
-    background: var(--m3-surface);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-md);
+    background: var(--sfc-surface);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-md);
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .sfc-topbar-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--m3-outline-variant);
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--sfc-surface-border-subtle);
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -131,30 +121,21 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     gap: 12px;
 }
 
-.sfc-logo-glyph {
-    font-size: 28px !important;
-    color: var(--m3-primary);
-    background: var(--m3-primary-container);
-    width: 44px;
-    height: 44px;
-    border-radius: var(--m3-radius-sm);
-}
-
 .sfc-title-group {
     display: flex;
     flex-direction: column;
 }
 
 .sfc-app-title {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 700;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     margin: 0;
 }
 
 .sfc-app-tagline {
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     margin-top: 2px;
 }
 
@@ -164,38 +145,37 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     gap: 10px;
 }
 
-/* Live AI Status Pill */
+/* AI Status Pill (Clean Monochrome) */
 .sfc-ai-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 5px 12px;
-    background: var(--m3-surface-container-low);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-full);
+    background: var(--sfc-surface-subtle);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-full);
     font-size: 12px;
     font-weight: 500;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-ai-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #10b981;
     display: inline-block;
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 .sfc-ai-config-link {
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     display: inline-flex;
     align-items: center;
     text-decoration: none;
     margin-left: 4px;
 }
 .sfc-ai-config-link:hover {
-    color: var(--m3-primary);
+    color: var(--sfc-primary);
 }
 
 .sfc-btn-text {
@@ -206,22 +186,22 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--m3-on-surface-variant);
+    font-weight: 500;
+    color: var(--sfc-text-secondary);
     padding: 6px 10px;
-    border-radius: var(--m3-radius-sm);
+    border-radius: var(--sfc-radius-sm);
     transition: background 0.15s ease;
 }
 .sfc-btn-text:hover {
-    background: var(--m3-surface-container);
-    color: var(--m3-primary);
+    background: var(--sfc-surface-alt);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-btn-icon {
     background: transparent;
     border: none;
     cursor: pointer;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     padding: 6px;
     border-radius: 50%;
     display: inline-flex;
@@ -230,17 +210,17 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     transition: background 0.15s ease;
 }
 .sfc-btn-icon:hover {
-    background: var(--m3-surface-container);
-    color: var(--m3-error);
+    background: var(--sfc-surface-alt);
+    color: var(--sfc-red);
 }
 
-/* Navigation Segmented Tabs */
+/* Navigation Tabs (Google Material Minimal) */
 .sfc-nav-tabs {
     display: flex;
     overflow-x: auto;
     background: #ffffff;
-    border-radius: 0 0 var(--m3-radius-md) var(--m3-radius-md);
-    padding: 0 8px;
+    border-radius: 0 0 var(--sfc-radius-md) var(--sfc-radius-md);
+    padding: 0 12px;
 }
 
 .sfc-nav-item {
@@ -253,42 +233,42 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     border-bottom: 2px solid transparent;
     font-size: 13px;
     font-weight: 600;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s ease;
 }
 
 .sfc-nav-item:hover {
-    color: var(--m3-primary);
-    background: var(--m3-surface-container-low);
+    color: var(--sfc-text-primary);
+    background: var(--sfc-surface-subtle);
 }
 
 .sfc-nav-item.active {
-    color: var(--m3-primary);
-    border-bottom-color: var(--m3-primary);
+    color: var(--sfc-primary);
+    border-bottom-color: var(--sfc-primary);
 }
 
 .sfc-counter {
-    background: var(--m3-surface-container-high);
-    color: var(--m3-on-surface-variant);
+    background: var(--sfc-surface-alt);
+    color: var(--sfc-text-secondary);
     font-size: 11px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: var(--m3-radius-full);
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: var(--sfc-radius-full);
 }
 
 .sfc-nav-item.active .sfc-counter {
-    background: var(--m3-primary-container);
-    color: var(--m3-on-primary-container);
+    background: var(--sfc-primary-container);
+    color: var(--sfc-on-primary-container);
 }
 
 .sfc-counter-alert {
-    background: var(--m3-warning-container);
-    color: var(--m3-warning);
+    background: #fef7e0;
+    color: var(--sfc-amber);
 }
 
-/* Views display toggling */
+/* Views toggling */
 .sfc-view {
     display: none;
 }
@@ -311,11 +291,11 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 /* Panels */
 .sfc-panel {
-    background: var(--m3-surface);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-md);
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    background: var(--sfc-surface);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-md);
+    padding: 22px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .sfc-panel-header {
@@ -323,15 +303,15 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-panel-header h2 {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     margin: 0 0 4px;
 }
 
 .sfc-subtext {
     font-size: 13px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     margin: 0;
 }
 
@@ -344,10 +324,10 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 /* Segmented Control */
 .sfc-segmented-control {
     display: flex;
-    background: var(--m3-surface-container);
-    padding: 4px;
-    border-radius: var(--m3-radius-sm);
-    gap: 4px;
+    background: var(--sfc-surface-alt);
+    padding: 3px;
+    border-radius: var(--sfc-radius-sm);
+    gap: 3px;
     margin-bottom: 16px;
 }
 
@@ -360,18 +340,19 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     padding: 8px 12px;
     background: transparent;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--m3-on-surface-variant);
+    font-weight: 500;
+    color: var(--sfc-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .sfc-segment.active {
     background: #ffffff;
-    color: var(--m3-primary);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    color: var(--sfc-text-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    font-weight: 600;
 }
 
 /* Upload Container */
@@ -380,24 +361,24 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-dropzone {
-    border: 2px dashed var(--m3-outline);
-    border-radius: var(--m3-radius-md);
-    padding: 32px 20px;
+    border: 2px dashed var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-md);
+    padding: 36px 20px;
     text-align: center;
-    background: var(--m3-surface-container-low);
+    background: var(--sfc-surface-subtle);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .sfc-dropzone:hover,
 .sfc-dropzone.dragover {
-    border-color: var(--m3-primary);
-    background: var(--m3-primary-container);
+    border-color: var(--sfc-primary);
+    background: var(--sfc-primary-container);
 }
 
 .sfc-dropzone-icon {
-    font-size: 44px;
-    color: var(--m3-primary);
+    font-size: 40px;
+    color: var(--sfc-text-muted);
     margin-bottom: 10px;
 }
 
@@ -406,7 +387,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     flex-direction: column;
     gap: 4px;
     margin-bottom: 18px;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-dropzone-label strong {
@@ -415,8 +396,8 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-dropzone-label span {
-    font-size: 13px;
-    color: var(--m3-on-surface-variant);
+    font-size: 12px;
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-dropzone-actions {
@@ -426,14 +407,14 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     flex-wrap: wrap;
 }
 
-/* Buttons (Material Design 3) */
+/* Standard Buttons */
 .sfc-btn-m3 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 9px 18px;
-    border-radius: var(--m3-radius-full);
+    border-radius: var(--sfc-radius-sm);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -443,37 +424,37 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-btn-primary {
-    background: var(--m3-primary);
+    background: var(--sfc-primary);
     color: #ffffff;
 }
 .sfc-btn-primary:hover {
-    background: var(--m3-primary-hover);
-    box-shadow: var(--m3-elevation-1);
-}
-
-.sfc-btn-tonal {
-    background: var(--m3-surface-container-high);
-    color: var(--m3-on-surface);
-}
-.sfc-btn-tonal:hover {
-    background: #d3d6da;
+    background: var(--sfc-primary-hover);
+    box-shadow: var(--sfc-shadow-1);
 }
 
 .sfc-btn-outlined {
-    background: transparent;
-    border-color: var(--m3-outline);
-    color: var(--m3-primary);
+    background: #ffffff;
+    border-color: var(--sfc-surface-border);
+    color: var(--sfc-text-primary);
 }
 .sfc-btn-outlined:hover {
-    background: var(--m3-primary-container);
-    border-color: #c2e7ff;
+    background: var(--sfc-surface-subtle);
+    border-color: #b0b4b8;
+}
+
+.sfc-btn-tonal {
+    background: var(--sfc-surface-alt);
+    color: var(--sfc-text-primary);
+}
+.sfc-btn-tonal:hover {
+    background: #e2e4e8;
 }
 
 .sfc-btn-danger {
-    color: var(--m3-error);
+    color: var(--sfc-red);
 }
 .sfc-btn-danger:hover {
-    background: var(--m3-error-container);
+    background: #fce8e6;
 }
 
 .sfc-btn-sm {
@@ -490,12 +471,49 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     width: 100%;
 }
 
+/* Clean Presets (Subtle text buttons, not candy stickers) */
+.sfc-preset-section {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--sfc-surface-border-subtle);
+}
+
+.sfc-preset-title {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sfc-text-secondary);
+    margin-bottom: 8px;
+}
+
+.sfc-preset-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sfc-btn-subtle {
+    padding: 5px 12px;
+    background: var(--sfc-surface-subtle);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sfc-text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sfc-btn-subtle:hover {
+    background: #e8eaed;
+}
+
 /* Image Preview */
 .sfc-preview-box {
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-md);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-md);
     overflow: hidden;
-    background: var(--m3-surface);
+    background: var(--sfc-surface);
 }
 
 .sfc-preview-img-container {
@@ -518,14 +536,14 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     left: 0;
     right: 0;
     height: 3px;
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.3);
     overflow: hidden;
 }
 
 .sfc-linear-progress-bar {
     width: 100%;
     height: 100%;
-    background: var(--m3-primary);
+    background: var(--sfc-primary);
     animation: sfc-progress-anim 1.5s infinite linear;
     transform-origin: 0% 50%;
 }
@@ -541,7 +559,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background: var(--m3-surface);
+    background: var(--sfc-surface);
 }
 
 .sfc-preview-status {
@@ -549,7 +567,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     font-weight: 500;
 }
 
@@ -565,8 +583,8 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 .sfc-textarea-m3 {
     width: 100%;
     padding: 12px;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     font-family: inherit;
     font-size: 14px;
     line-height: 1.5;
@@ -575,8 +593,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-textarea-m3:focus {
-    border-color: var(--m3-primary);
-    box-shadow: 0 0 0 1px var(--m3-primary);
+    border-color: var(--sfc-primary);
 }
 
 .sfc-text-footer {
@@ -585,44 +602,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     margin-top: 10px;
 }
 
-/* Filter Chips */
-.sfc-chip-group {
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid var(--m3-outline-variant);
-}
-
-.sfc-chip-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--m3-on-surface-subtle);
-    margin-bottom: 8px;
-}
-
-.sfc-chips-list {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.sfc-filter-chip {
-    padding: 5px 12px;
-    background: var(--m3-surface);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-full);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--m3-on-surface);
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.sfc-filter-chip:hover {
-    background: var(--m3-surface-container);
-}
-
-/* ================= DATA TABLE (Google Sheets Clean Style) ================= */
+/* ================= DATA TABLE ================= */
 .sfc-table-container {
     overflow-x: auto;
     margin-bottom: 16px;
@@ -637,8 +617,8 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 .sfc-data-table th {
     text-align: left;
     padding: 8px 10px;
-    border-bottom: 1px solid var(--m3-outline);
-    color: var(--m3-on-surface-subtle);
+    border-bottom: 1px solid var(--sfc-surface-border);
+    color: var(--sfc-text-muted);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -647,7 +627,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-data-table td {
     padding: 10px;
-    border-bottom: 1px solid var(--m3-outline-variant);
+    border-bottom: 1px solid var(--sfc-surface-border-subtle);
     vertical-align: middle;
 }
 
@@ -660,39 +640,26 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-item-icon {
     font-size: 18px !important;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-muted);
 }
 
 .sfc-qty-tag {
-    background: var(--m3-surface-container);
-    padding: 2px 8px;
-    border-radius: var(--m3-radius-sm);
-    font-size: 12px;
-    font-weight: 600;
+    color: var(--sfc-text-secondary);
+    font-size: 13px;
 }
 
 .sfc-fresh-tag {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: var(--m3-radius-full);
-}
-.sfc-tag-warning {
-    background: var(--m3-warning-container);
-    color: var(--m3-warning);
-}
-.sfc-tag-fresh {
-    background: var(--m3-surface-container);
-    color: var(--m3-on-surface-variant);
+    font-size: 12px;
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-bottom-cta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--m3-surface-container-low);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    background: var(--sfc-surface-subtle);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     padding: 14px 18px;
     gap: 16px;
     flex-wrap: wrap;
@@ -701,11 +668,11 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 .sfc-cta-info strong {
     display: block;
     font-size: 14px;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 .sfc-cta-info span {
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
 }
 
 /* Empty Placeholder */
@@ -715,92 +682,95 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-empty-icon {
-    font-size: 48px !important;
-    color: var(--m3-on-surface-subtle);
+    font-size: 44px !important;
+    color: var(--sfc-text-muted);
     margin-bottom: 8px;
 }
 
 .sfc-empty-placeholder h3 {
     margin: 0 0 6px;
-    font-size: 16px;
-    color: var(--m3-on-surface);
+    font-size: 17px;
+    color: var(--sfc-text-primary);
 }
 
 .sfc-empty-placeholder p {
     margin: 0;
     font-size: 13px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     max-width: 320px;
     margin: 0 auto;
 }
 
-/* ================= VIEW HEADERS ================= */
+/* ================= VIEW HEADERS & FILTER BUTTONS ================= */
 .sfc-view-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 12px;
 }
 
 .sfc-view-header h2 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     margin: 0;
 }
 
-.sfc-filter-chips {
+.sfc-filter-buttons {
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+    background: var(--sfc-surface-alt);
+    padding: 3px;
+    border-radius: var(--sfc-radius-sm);
+    gap: 2px;
 }
 
-.sfc-chip-item {
+.sfc-filter-btn {
     padding: 6px 14px;
-    background: #ffffff;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-full);
+    background: transparent;
+    border: none;
+    border-radius: 4px;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--m3-on-surface-variant);
+    font-weight: 500;
+    color: var(--sfc-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.sfc-chip-item.active {
-    background: var(--m3-primary-container);
-    color: var(--m3-on-primary-container);
-    border-color: #c2e7ff;
+.sfc-filter-btn.active {
+    background: #ffffff;
+    color: var(--sfc-text-primary);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* ================= RECIPES GRID (Instagram Style Feed Cards) ================= */
+/* ================= RECIPES GRID (Instagram / Clean Editorial Feed) ================= */
 .sfc-recipe-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
 }
 
 .sfc-feed-card {
-    background: var(--m3-surface);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-md);
+    background: var(--sfc-surface);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-md);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sfc-feed-card:hover {
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    transform: translateY(-2px);
+    border-color: #b0b4b8;
+    box-shadow: var(--sfc-shadow-1);
 }
 
 .sfc-feed-img-box {
     position: relative;
-    height: 180px;
-    background: var(--m3-surface-container);
+    height: 190px;
+    background: var(--sfc-surface-alt);
 }
 
 .sfc-feed-img-box img {
@@ -810,52 +780,25 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     display: block;
 }
 
-/* Match Chips: Clean Editorial Badges */
-.sfc-match-chip {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 4px 10px;
-    border-radius: var(--m3-radius-sm);
-    font-size: 11px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-
-.sfc-chip-ready {
-    background: #e6f4ea;
-    color: #137333;
-    border: 1px solid #ceead6;
-}
-
-.sfc-chip-shop {
-    background: #fef7e0;
-    color: #b06000;
-    border: 1px solid #feefc3;
-}
-
 .sfc-feed-body {
-    padding: 16px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
     flex: 1;
 }
 
-.sfc-feed-category {
+.sfc-recipe-category {
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    color: var(--m3-primary);
+    color: var(--sfc-text-muted);
     margin-bottom: 4px;
 }
 
 .sfc-feed-title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     margin: 0 0 6px;
     line-height: 1.35;
 }
@@ -864,8 +807,8 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     display: flex;
     gap: 12px;
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
-    margin-bottom: 10px;
+    color: var(--sfc-text-secondary);
+    margin-bottom: 12px;
 }
 
 .sfc-feed-meta span {
@@ -874,39 +817,34 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     gap: 3px;
 }
 
-/* Missing items inline banner on card */
-.sfc-feed-missing-banner {
-    background: #fff8e1;
-    border: 1px solid #ffe082;
-    border-radius: var(--m3-radius-sm);
+/* Clean Availability Line (No tacky badges) */
+.sfc-recipe-availability {
+    font-size: 12px;
     padding: 6px 10px;
-    font-size: 11px;
-    color: #b06000;
+    border-radius: 4px;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-weight: 500;
+}
+
+.sfc-recipe-availability.ready {
+    background: #edf7ed;
+    color: #1e4620;
+    border-left: 3px solid var(--sfc-green);
+}
+
+.sfc-recipe-availability.shop {
+    background: #fff8e1;
+    color: #5c3b00;
+    border-left: 3px solid var(--sfc-amber);
 }
 
 .sfc-feed-ingredients {
     font-size: 12px;
-    color: var(--m3-on-surface);
-    margin-bottom: 14px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.sfc-ing-pill {
-    background: var(--m3-surface-container-low);
-    border: 1px solid var(--m3-outline-variant);
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    color: var(--sfc-text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.45;
 }
 
 .sfc-feed-footer {
@@ -914,19 +852,19 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid var(--m3-outline-variant);
+    border-top: 1px solid var(--sfc-surface-border-subtle);
     padding-top: 12px;
 }
 
 .sfc-feed-macros {
     font-size: 11px;
-    color: var(--m3-on-surface-subtle);
+    color: var(--sfc-text-muted);
 }
 
-/* ================= 7-DAY PLAN (Google Calendar Strip) ================= */
+/* ================= 7-DAY MEAL PLAN ================= */
 .sfc-calendar-strip {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
     padding-bottom: 8px;
     margin-bottom: 16px;
@@ -937,8 +875,8 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     min-width: 105px;
     padding: 10px 12px;
     background: #ffffff;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     text-align: center;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -948,29 +886,29 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-cal-day-btn .day-sub {
     font-size: 11px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-cal-day-btn.active {
-    background: var(--m3-primary-container);
+    background: var(--sfc-primary-container);
     border-color: #c2e7ff;
 }
 .sfc-cal-day-btn.active .day-title {
-    color: var(--m3-on-primary-container);
+    color: var(--sfc-on-primary-container);
 }
 
 .sfc-day-strategy-notice {
-    background: var(--m3-surface-container-low);
-    border-left: 3px solid var(--m3-primary);
+    background: var(--sfc-surface-subtle);
+    border-left: 3px solid var(--sfc-primary);
     padding: 12px 16px;
-    border-radius: 0 var(--m3-radius-sm) var(--m3-radius-sm) 0;
+    border-radius: 0 var(--sfc-radius-sm) var(--sfc-radius-sm) 0;
     font-size: 13px;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -991,15 +929,11 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-slot-card {
     background: #ffffff;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-md);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-md);
     padding: 14px;
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.15s ease;
-}
-.sfc-slot-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .sfc-slot-head {
@@ -1013,15 +947,15 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    color: var(--m3-on-surface-subtle);
+    color: var(--sfc-text-muted);
 }
 
 .sfc-slot-img {
     height: 110px;
-    border-radius: var(--m3-radius-sm);
+    border-radius: 4px;
     overflow: hidden;
     margin-bottom: 8px;
-    background: var(--m3-surface-container);
+    background: var(--sfc-surface-alt);
 }
 
 .sfc-slot-img img {
@@ -1035,35 +969,28 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     font-size: 15px;
     font-weight: 600;
     line-height: 1.35;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-slot-meta {
     font-size: 11px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     margin-bottom: 8px;
 }
 
-/* Slot status badge: fridge vs shop */
-.sfc-slot-status {
+.sfc-slot-state {
+    font-size: 11px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 4px;
     margin-bottom: 10px;
 }
-.sfc-slot-status-ready {
-    background: #e6f4ea;
-    color: #137333;
-    border: 1px solid #ceead6;
+
+.sfc-slot-state.ready {
+    color: var(--sfc-green);
 }
-.sfc-slot-status-shop {
-    background: #fef7e0;
-    color: #b06000;
-    border: 1px solid #feefc3;
+.sfc-slot-state.shop {
+    color: var(--sfc-amber);
 }
 
 .sfc-slot-actions {
@@ -1076,7 +1003,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     flex: 1;
 }
 
-/* ================= SHOPPING LIST (Google Keep Style) ================= */
+/* ================= SHOPPING LIST ================= */
 .sfc-shopping-layout {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -1094,7 +1021,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     justify-content: space-between;
     align-items: center;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--m3-outline-variant);
+    border-bottom: 1px solid var(--sfc-surface-border-subtle);
     margin-bottom: 14px;
     font-size: 13px;
 }
@@ -1107,7 +1034,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     margin: 0 0 8px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--m3-on-surface-subtle);
+    color: var(--sfc-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
@@ -1117,18 +1044,18 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     align-items: center;
     gap: 10px;
     padding: 6px 8px;
-    border-radius: var(--m3-radius-sm);
+    border-radius: 4px;
     transition: background 0.1s ease;
 }
 
 .sfc-keep-item:hover {
-    background: var(--m3-surface-container-low);
+    background: var(--sfc-surface-subtle);
 }
 
 .sfc-checkbox {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--m3-primary);
+    width: 17px;
+    height: 17px;
+    accent-color: var(--sfc-primary);
     cursor: pointer;
 }
 
@@ -1143,13 +1070,13 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-keep-item.checked .sfc-keep-label span:first-child {
     text-decoration: line-through;
-    color: var(--m3-on-surface-subtle);
+    color: var(--sfc-text-muted);
 }
 
 .sfc-sidebar-card {
-    background: var(--m3-surface-container-low);
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    background: var(--sfc-surface-subtle);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     padding: 16px;
     margin-bottom: 16px;
 }
@@ -1161,25 +1088,25 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 8px;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-sidebar-desc {
     font-size: 13px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     line-height: 1.45;
     margin: 0 0 12px;
 }
 
 .sfc-sidebar-hints {
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-sidebar-hints h4 {
     margin: 0 0 8px;
     font-size: 13px;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-sidebar-hints ul {
@@ -1188,15 +1115,50 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     line-height: 1.6;
 }
 
-/* ================= STORES & MAP (Google Maps Style) ================= */
+/* ================= STORES & MAP ================= */
+.sfc-location-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #ffffff;
+    border: 1px solid var(--sfc-surface-border);
+    border-left: 4px solid var(--sfc-primary);
+    border-radius: var(--sfc-radius-md);
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.sfc-location-banner-icon {
+    font-size: 32px;
+    color: var(--sfc-primary);
+}
+
+.sfc-location-banner-text {
+    flex: 1;
+    min-width: 240px;
+}
+
+.sfc-location-banner-text h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    color: var(--sfc-text-primary);
+}
+
+.sfc-location-banner-text p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--sfc-text-secondary);
+}
+
 .sfc-rec-card {
     background: #ffffff;
-    border: 1px solid var(--m3-outline);
-    border-left: 4px solid var(--m3-primary);
-    border-radius: var(--m3-radius-md);
+    border: 1px solid var(--sfc-surface-border);
+    border-left: 4px solid var(--sfc-primary);
+    border-radius: var(--sfc-radius-md);
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .sfc-rec-card-header {
@@ -1212,17 +1174,17 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     gap: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--m3-primary);
+    color: var(--sfc-primary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
 
 .sfc-rec-engine-tag {
     font-size: 11px;
-    background: var(--m3-surface-container);
+    background: var(--sfc-surface-alt);
     padding: 2px 8px;
-    border-radius: var(--m3-radius-full);
-    color: var(--m3-on-surface-variant);
+    border-radius: var(--sfc-radius-full);
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-rec-content {
@@ -1251,17 +1213,14 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 }
 
 .sfc-rec-dist-chip {
-    background: var(--m3-success-container);
-    color: var(--m3-success);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 2px 8px;
-    border-radius: var(--m3-radius-full);
+    color: var(--sfc-green);
 }
 
 .sfc-rec-reason {
     font-size: 14px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     line-height: 1.5;
     margin: 0 0 10px;
 }
@@ -1270,7 +1229,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     display: flex;
     gap: 16px;
     font-size: 13px;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     font-weight: 500;
     margin-bottom: 12px;
 }
@@ -1286,7 +1245,7 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     flex-direction: column;
     gap: 4px;
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
 }
 
 .sfc-rec-actions {
@@ -1320,13 +1279,13 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     align-items: center;
     flex: 1;
     background: #ffffff;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-full);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     padding: 0 8px 0 12px;
 }
 
 .sfc-search-icon {
-    color: var(--m3-on-surface-subtle);
+    color: var(--sfc-text-muted);
     margin-right: 6px;
 }
 
@@ -1335,22 +1294,22 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     border: none;
     outline: none;
     font-size: 14px;
-    padding: 8px 0;
+    padding: 9px 0;
 }
 
 .sfc-search-btn {
     border: none;
     background: transparent;
     cursor: pointer;
-    color: var(--m3-primary);
+    color: var(--sfc-primary);
     display: flex;
     align-items: center;
 }
 
 .sfc-leaflet-map {
     height: 440px;
-    border-radius: var(--m3-radius-sm);
-    border: 1px solid var(--m3-outline);
+    border-radius: var(--sfc-radius-sm);
+    border: 1px solid var(--sfc-surface-border);
     overflow: hidden;
 }
 
@@ -1364,16 +1323,16 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-place-card {
     padding: 12px;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     background: #ffffff;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .sfc-place-card:hover, .sfc-place-card.selected {
-    border-color: var(--m3-primary);
-    background: var(--m3-primary-container);
+    border-color: var(--sfc-primary);
+    background: var(--sfc-primary-container);
 }
 
 .sfc-place-head {
@@ -1386,24 +1345,11 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-place-addr {
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
-    margin-bottom: 6px;
+    color: var(--sfc-text-secondary);
+    margin-bottom: 4px;
 }
 
-.sfc-place-tags {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-}
-
-.sfc-tag-sm {
-    font-size: 11px;
-    background: var(--m3-surface-container);
-    padding: 1px 6px;
-    border-radius: 4px;
-}
-
-/* ================= MODALS (Instagram / Material Dialog) ================= */
+/* ================= MODALS ================= */
 .sfc-modal-scrim {
     position: fixed;
     top: 0;
@@ -1420,14 +1366,14 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
 
 .sfc-modal-sheet {
     background: #ffffff;
-    border-radius: var(--m3-radius-lg);
+    border-radius: var(--sfc-radius-lg);
     max-width: 640px;
     width: 100%;
     max-height: 88vh;
     overflow-y: auto;
     padding: 28px;
     position: relative;
-    box-shadow: var(--m3-elevation-2);
+    box-shadow: var(--sfc-shadow-2);
 }
 
 .sfc-modal-compact {
@@ -1441,10 +1387,10 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--m3-on-surface-subtle);
+    color: var(--sfc-text-muted);
 }
 .sfc-modal-close:hover {
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-modal-title {
@@ -1465,21 +1411,21 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     display: block;
     font-size: 13px;
     font-weight: 500;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
     margin-bottom: 6px;
 }
 
 .sfc-form-field input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     font-size: 14px;
     outline: none;
 }
 
 .sfc-form-field input:focus {
-    border-color: var(--m3-primary);
+    border-color: var(--sfc-primary);
 }
 
 .sfc-modal-actions {
@@ -1489,11 +1435,11 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     margin-top: 18px;
 }
 
-/* Swap Modal Options List */
+/* Swap Modal Options */
 .sfc-swap-options-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .sfc-swap-item {
@@ -1502,15 +1448,15 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     justify-content: space-between;
     padding: 12px 14px;
     background: #ffffff;
-    border: 1px solid var(--m3-outline);
-    border-radius: var(--m3-radius-sm);
+    border: 1px solid var(--sfc-surface-border);
+    border-radius: var(--sfc-radius-sm);
     gap: 14px;
     transition: all 0.15s ease;
 }
 
 .sfc-swap-item:hover {
-    border-color: var(--m3-primary);
-    background: var(--m3-surface-container-low);
+    border-color: var(--sfc-primary);
+    background: var(--sfc-surface-subtle);
 }
 
 .sfc-swap-item-info {
@@ -1522,14 +1468,14 @@ p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed
     font-weight: 700;
     margin-bottom: 4px;
     font-family: 'Lora', Georgia, serif;
-    color: var(--m3-on-surface);
+    color: var(--sfc-text-primary);
 }
 
 .sfc-swap-item-meta {
     font-size: 12px;
-    color: var(--m3-on-surface-variant);
+    color: var(--sfc-text-secondary);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
 }

@@ -164,9 +164,19 @@ class SFC_API_Controller {
      */
     public static function handle_find_stores( WP_REST_Request $request ) {
         $params = $request->get_json_params();
-        $lat           = $params['lat'] ?? 55.7558;
-        $lon           = $params['lon'] ?? 37.6173;
+        $lat           = isset( $params['lat'] ) && is_numeric( $params['lat'] ) ? floatval( $params['lat'] ) : null;
+        $lon           = isset( $params['lon'] ) && is_numeric( $params['lon'] ) ? floatval( $params['lon'] ) : null;
         $shopping_list = $params['shopping_list'] ?? [];
+
+        if ( empty( $lat ) || empty( $lon ) ) {
+            return rest_ensure_response([
+                'success'        => true,
+                'needs_location' => true,
+                'user_location'  => null,
+                'stores'         => [],
+                'recommendation' => null,
+            ]);
+        }
 
         $result = SFC_Store_Locator::find_and_recommend_stores( $lat, $lon, $shopping_list );
 

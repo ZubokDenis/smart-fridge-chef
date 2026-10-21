@@ -17,9 +17,13 @@ class SFC_Store_Locator {
         $lon = floatval( $lon );
 
         if ( empty( $lat ) || empty( $lon ) ) {
-            // Default: Moscow center
-            $lat = 55.7558;
-            $lon = 37.6173;
+            return [
+                'user_location'  => null,
+                'stores'         => [],
+                'recommendation' => null,
+                'needs_location' => true,
+                'message'        => 'Пожалуйста, поделитесь вашим местоположением или укажите город, чтобы найти ближайшие магазины.'
+            ];
         }
 
         // Try querying live OpenStreetMap Overpass
@@ -206,35 +210,35 @@ class SFC_Store_Locator {
                 'name'    => 'Пятёрочка',
                 'd_north' => 120, // 120m North
                 'd_east'  => 80,  // 80m East
-                'address' => 'ул. Ленина, д. 14',
+                'address' => 'Супермаркет у дома',
                 'hours'   => '08:00 - 23:00',
             ],
             [
                 'name'    => 'ВкусВилл',
                 'd_north' => -180, // 180m South
                 'd_east'  => 150,  // 150m East
-                'address' => 'пр-т Мира, д. 8',
+                'address' => 'Магазин свежих продуктов',
                 'hours'   => '08:00 - 22:00',
             ],
             [
                 'name'    => 'Магнит',
                 'd_north' => 90,   // 90m North
                 'd_east'  => -210, // 210m West
-                'address' => 'ул. Садовая, д. 22',
+                'address' => 'Универсам у дома',
                 'hours'   => '08:00 - 22:30',
             ],
             [
                 'name'    => 'Перекрёсток',
                 'd_north' => -280, // 280m South
                 'd_east'  => -140, // 140m West
-                'address' => 'ТЦ "Пассаж", 1 этаж',
+                'address' => 'Супермаркет в ТЦ',
                 'hours'   => 'Круглосуточно (24/7)',
             ],
             [
                 'name'    => 'Лента Супермаркет',
                 'd_north' => 420,  // 420m North
                 'd_east'  => 310,  // 310m East
-                'address' => 'ул. Центральная, д. 35',
+                'address' => 'Гипермаркет продуктов',
                 'hours'   => '08:00 - 23:00',
             ],
         ];

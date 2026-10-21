@@ -1,13 +1,13 @@
 /**
  * Smart Fridge Chef - Application Logic
- * Clean Standard Architecture with Multi-Provider AI (Ollama Cloud / Claude / Gemini)
- * Features:
- * - Instant recipe generation immediately after photo upload
- * - Dynamic geolocation & city change via Nominatim geocoding & reverse geocoding
- * - Image WebP client-side conversion
- * - Recipe & Weekly Plan variability with "Только из холодильника" vs "+ Докупить" indicators
- * - Dynamic meal swapping in 7-day meal plan
- * - No emojis / stickers (Strict Google Material Symbols)
+ * Clean Standard Architecture (Google Material & Instagram Web)
+ * 
+ * Key Highlights:
+ * - NO default Moscow: strictly gets user's location via geolocation or explicit city input.
+ * - Instant recipe & meal plan generation immediately after photo upload.
+ * - Client-side Canvas WebP conversion before uploading.
+ * - Clean editorial design with zero stickers / emojis.
+ * - True meal variability: "Из холодильника" vs "С докупкой" + instant meal swapping.
  */
 
 (function () {
@@ -21,7 +21,10 @@
         recipesByType: {},
         shoppingList: [],
         groupedShopping: {},
-        userLocation: { lat: sfcConfig.defaultLat || 55.7558, lon: sfcConfig.defaultLon || 37.6173 },
+        userLocation: (sfcConfig.defaultLat && sfcConfig.defaultLon)
+            ? { lat: parseFloat(sfcConfig.defaultLat), lon: parseFloat(sfcConfig.defaultLon) }
+            : null,
+        userCityName: sfcConfig.defaultCity || '',
         stores: [],
         recommendation: null,
         activeDayIndex: 0,
@@ -64,13 +67,13 @@
             productsTbody: document.getElementById('sfc-products-tbody'),
             btnAddManualProduct: document.getElementById('sfc-btn-add-manual-product'),
             btnStartCook: document.getElementById('sfc-btn-start-cook'),
-            presetChips: document.querySelectorAll('.sfc-filter-chip'),
+            presetButtons: document.querySelectorAll('.sfc-btn-subtle'),
             btnDemo: document.getElementById('sfc-btn-demo'),
             btnReset: document.getElementById('sfc-btn-reset'),
 
             // Tab 2: Recipes
             recipesContainer: document.getElementById('sfc-recipes-container'),
-            recipeFilters: document.querySelectorAll('.sfc-chip-item'),
+            recipeFilters: document.querySelectorAll('.sfc-filter-btn'),
 
             // Tab 3: Meal Plan
             daysNav: document.getElementById('sfc-days-nav'),
@@ -85,7 +88,9 @@
             quickStoreTeaser: document.getElementById('sfc-quick-store-teaser'),
             btnOpenMapTeaser: document.getElementById('sfc-btn-open-map-teaser'),
 
-            // Tab 5: Stores
+            // Tab 5: Stores & Geolocation
+            locationPrompt: document.getElementById('sfc-location-prompt'),
+            btnPromptGeolocate: document.getElementById('sfc-btn-prompt-geolocate'),
             recHero: document.getElementById('sfc-recommendation-hero'),
             recTitle: document.getElementById('sfc-rec-title'),
             recReason: document.getElementById('sfc-rec-reason'),
@@ -98,6 +103,7 @@
             recRouteGoogle: document.getElementById('sfc-rec-route-google'),
             mapContainer: document.getElementById('sfc-map'),
             storesList: document.getElementById('sfc-stores-list'),
+            storesSubtitle: document.getElementById('sfc-stores-subtitle'),
             btnGeolocate: document.getElementById('sfc-btn-geolocate'),
             searchAddressInput: document.getElementById('sfc-search-address'),
             btnSearchCity: document.getElementById('sfc-btn-search-city'),
@@ -125,14 +131,26 @@
         bindEvents();
         loadAIStatus();
 
-        // Load saved fridge products
+        // Cleanse and load saved fridge products
         const saved = localStorage.getItem('sfc_products');
         if (saved) {
             try {
-                state.products = JSON.parse(saved);
-                renderProducts();
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(p => {
+                        // Purge any stored emoji icons from older sessions
+                        if (p.icon && /[\uD800-\uDFFF\u2600-\u27BF]/.test(p.icon)) {
+                            p.icon = 'inventory_2';
+                        }
+                    });
+                    state.products = parsed;
+                    renderProducts();
+                }
             } catch (e) {}
         }
+
+        // On launch: Automatically ask browser for user's REAL location
+        requestUserGeolocation(true);
     });
 
     // Load Live AI status from backend
@@ -152,7 +170,7 @@
                 }
             })
             .catch(() => {
-                dom.aiStatusText.textContent = 'ИИ: ' + (sfcConfig.aiLabel || 'Локальный');
+                dom.aiStatusText.textContent = 'ИИ: ' + (sfcConfig.aiLabel || 'Активен');
             });
     }
 
@@ -215,8 +233,8 @@
         });
 
         // Presets
-        dom.presetChips.forEach(chip => {
-            chip.addEventListener('click', () => loadPreset(chip.dataset.preset));
+        dom.presetButtons.forEach(btn => {
+            btn.addEventListener('click', () => loadPreset(btn.dataset.preset));
         });
 
         dom.btnDemo.addEventListener('click', () => loadPreset('family'));
@@ -243,12 +261,12 @@
         // Cook button: transitions to recipes & meal plan
         dom.btnStartCook.addEventListener('click', generateRecipesAndPlan);
 
-        // Recipe filter pills
-        dom.recipeFilters.forEach(pill => {
-            pill.addEventListener('click', () => {
-                dom.recipeFilters.forEach(p => p.classList.remove('active'));
-                pill.classList.add('active');
-                filterRecipes(pill.dataset.filter);
+        // Recipe filter buttons
+        dom.recipeFilters.forEach(btn => {
+            btn.addEventListener('click', () => {
+                dom.recipeFilters.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                filterRecipes(btn.dataset.filter);
             });
         });
 
@@ -277,8 +295,11 @@
         dom.btnGoToStores.addEventListener('click', () => switchTab('tab-stores'));
         dom.btnOpenMapTeaser.addEventListener('click', () => switchTab('tab-stores'));
 
-        // Store Geolocation & Search
-        dom.btnGeolocate.addEventListener('click', requestUserGeolocation);
+        // Geolocation & City Search
+        if (dom.btnPromptGeolocate) {
+            dom.btnPromptGeolocate.addEventListener('click', () => requestUserGeolocation(false));
+        }
+        dom.btnGeolocate.addEventListener('click', () => requestUserGeolocation(false));
         dom.btnSearchCity.addEventListener('click', searchCityAddress);
         dom.searchAddressInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') searchCityAddress();
@@ -292,10 +313,15 @@
 
         if (tabId === 'tab-stores') {
             setTimeout(initOrRefreshMap, 200);
+            if (!state.userLocation) {
+                showLocationPrompt();
+            } else {
+                fetchStoresAndRecommendations();
+            }
         }
     }
 
-    // Process Image File: Canvas-based WebP conversion before uploading
+    // Process Image: Converts to WebP via HTML5 Canvas before uploading
     function handleFileSelect(e) {
         if (e.target.files && e.target.files[0]) {
             processImageFile(e.target.files[0]);
@@ -307,7 +333,6 @@
         reader.onload = function (e) {
             const rawDataUrl = e.target.result;
 
-            // Render to HTML5 canvas to convert to WebP and bound dimensions to max 1600px
             const img = new Image();
             img.onload = function () {
                 const maxDim = 1600;
@@ -332,7 +357,7 @@
                         webpDataUrl = converted;
                     }
                 } catch (err) {
-                    console.warn('Canvas WebP conversion fallback:', err);
+                    console.warn('Canvas WebP fallback:', err);
                 }
 
                 dom.previewImg.src = webpDataUrl;
@@ -340,7 +365,7 @@
                 dom.previewWrapper.style.display = 'block';
                 dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>ИИ анализирует снимок и подбирает рецепты...</span>';
 
-                // Automatically trigger recipe and meal plan generation immediately upon photo upload
+                // Automatically calculate recipes immediately after photo upload!
                 sendAnalyzeRequest({
                     type: 'photo',
                     image_base64: webpDataUrl,
@@ -375,15 +400,15 @@
                 saveProductsState();
                 renderProducts();
                 if (dom.scanStatusText) {
-                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined" style="color:#137333;">check_circle</span> <span>Распознано: ${data.products.length} продуктов. Подбор рецептов...</span>`;
+                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined" style="color:#137333;">check_circle</span> <span>Распознано продуктов: ${data.products.length}. Подбор меню...</span>`;
                 }
 
-                // If photo upload was processed, immediately generate recipes and meal plan
+                // If photo was uploaded, immediately calculate recipes & meal plan
                 if (autoGenerateAfter) {
                     generateRecipesAndPlan();
                 }
             } else {
-                alert('Не удалось распознать продукты. Проверьте подключение к Ollama/Claude или введите текстом.');
+                alert('Не удалось распознать продукты. Проверьте настройки Ollama/Claude или введите список текстом.');
             }
         })
         .catch(err => {
@@ -409,10 +434,7 @@
         state.products.forEach((prod, index) => {
             const tr = document.createElement('tr');
 
-            const freshnessTag = prod.perishable
-                ? '<span class="sfc-fresh-tag sfc-tag-warning">Скоропортящееся</span>'
-                : '<span class="sfc-fresh-tag sfc-tag-fresh">Длительное хранение</span>';
-
+            const freshnessText = prod.perishable ? 'Скоропортящийся' : 'Длительное хранение';
             const iconName = prod.icon || 'inventory_2';
 
             tr.innerHTML = `
@@ -429,7 +451,7 @@
                     <span style="color:#5f6368;">${escapeHtml(prod.category || 'Другое')}</span>
                 </td>
                 <td>
-                    ${freshnessTag}
+                    <span class="sfc-fresh-tag">${freshnessText}</span>
                 </td>
                 <td style="text-align: right;">
                     <button type="button" class="sfc-btn-icon btn-delete-prod" data-index="${index}" title="Удалить">
@@ -463,7 +485,7 @@
     }
 
     function resetAll() {
-        if (confirm('Очистить холодильник и созданное меню?')) {
+        if (confirm('Очистить список продуктов и созданное меню?')) {
             state.products = [];
             state.recipes = { all: [], ready_now: [], need_more: [] };
             state.weeklyPlan = [];
@@ -485,9 +507,9 @@
     function loadPreset(presetKey) {
         let text = '';
         if (presetKey === 'bachelor') {
-            text = '4 яйца, 500 мл молока, кусок сыра 150г, сосиски 4 шт, пачка макарон, кетчуп, помидоры 2 шт, сливочное масло';
+            text = '4 яйца, 500 мл молока, сыр 150г, сосиски 4 шт, макароны, помидоры 2 шт, сливочное масло';
         } else if (presetKey === 'family') {
-            text = 'Яйца куриные 10 шт, молоко 1 л, творог 400г, сыр российский 250г, куриное филе 600г, помидоры 4 шт, огурцы 3 шт, сметана 1 банка, картофель 1.5 кг, морковь 2 шт, лук 3 шт, макароны 500г, сливочное масло';
+            text = 'Яйца куриные 10 шт, молоко 1 л, творог 400г, сыр российский 250г, куриное филе 600г, помидоры 4 шт, огурцы 3 шт, сметана, картофель 1.5 кг, морковь 2 шт, лук 3 шт, макароны 500г, сливочное масло';
         } else if (presetKey === 'healthy') {
             text = 'Куриное филе 500г, творог 200г, овсянка 300г, яйца 6 шт, огурцы 4 шт, помидоры 3 шт, свежая зелень, яблоки 4 шт, гречка 400г';
         } else if (presetKey === 'minimal') {
@@ -539,7 +561,9 @@
 
                 renderWeeklyPlan();
                 renderShoppingList();
-                fetchStoresAndRecommendations();
+                if (state.userLocation) {
+                    fetchStoresAndRecommendations();
+                }
                 switchTab('tab-recipes');
             }
         })
@@ -548,17 +572,17 @@
             alert('Ошибка при генерации меню.');
         })
         .finally(() => {
-            dom.btnStartCook.innerHTML = '<span>Рассчитать рецепты и меню</span> <span class="material-symbols-outlined">arrow_forward</span>';
+            dom.btnStartCook.innerHTML = '<span>Рассчитать меню</span> <span class="material-symbols-outlined">arrow_forward</span>';
             dom.btnStartCook.disabled = false;
         });
     }
 
-    // Render Recipes (Instagram Feed style cards)
+    // Render Recipes
     function renderRecipesGrid(recipes) {
         dom.recipesContainer.innerHTML = '';
 
         if (!recipes || recipes.length === 0) {
-            dom.recipesContainer.innerHTML = '<div class="sfc-empty-placeholder"><p>Подходящих рецептов не найдено. Добавьте больше базовых продуктов.</p></div>';
+            dom.recipesContainer.innerHTML = '<div class="sfc-empty-placeholder"><p>Подходящих рецептов не найдено. Добавьте больше продуктов.</p></div>';
             return;
         }
 
@@ -567,40 +591,28 @@
             card.className = 'sfc-feed-card';
 
             const isReady = recipe.can_cook_now;
-            const matchTag = isReady
-                ? '<span class="sfc-match-chip sfc-chip-ready"><span class="material-symbols-outlined" style="font-size:14px;">check</span> Только из холодильника</span>'
-                : `<span class="sfc-match-chip sfc-chip-shop"><span class="material-symbols-outlined" style="font-size:14px;">shopping_basket</span> Докупить: ${(recipe.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
-
-            let missingBanner = '';
-            if (!isReady && recipe.missing_ingredients && recipe.missing_ingredients.length > 0) {
-                missingBanner = `
-                    <div class="sfc-feed-missing-banner">
-                        <span class="material-symbols-outlined" style="font-size:15px;">shopping_cart</span>
-                        <span>Нужно докупить: <strong>${escapeHtml(recipe.missing_ingredients.join(', '))}</strong></span>
-                    </div>
-                `;
-            }
+            const availabilityHtml = isReady
+                ? `<div class="sfc-recipe-availability ready"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span> <span>100% из вашего холодильника</span></div>`
+                : `<div class="sfc-recipe-availability shop"><span class="material-symbols-outlined" style="font-size:16px;">shopping_bag</span> <span>Докупить: <strong>${escapeHtml((recipe.missing_ingredients || []).join(', '))}</strong></span></div>`;
 
             let ingHtml = '';
-            (recipe.ingredients_status || []).slice(0, 4).forEach(ing => {
-                const color = ing.available ? '#137333' : '#b06000';
-                const icon = ing.available ? 'check' : 'shopping_bag';
-                ingHtml += `<span class="sfc-ing-pill" style="color:${color};"><span class="material-symbols-outlined" style="font-size:12px;">${icon}</span> ${escapeHtml(ing.name)}</span>`;
+            (recipe.ingredients_status || []).slice(0, 5).forEach(ing => {
+                const mark = ing.available ? '•' : '+';
+                ingHtml += `<span style="margin-right:6px;">${mark} ${escapeHtml(ing.name)}</span>`;
             });
 
             card.innerHTML = `
                 <div class="sfc-feed-img-box">
                     <img src="${recipe.image}" alt="${escapeHtml(recipe.title)}" loading="lazy" />
-                    ${matchTag}
                 </div>
                 <div class="sfc-feed-body">
-                    <span class="sfc-feed-category">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
+                    <span class="sfc-recipe-category">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
                     <h3 class="sfc-feed-title">${escapeHtml(recipe.title)}</h3>
                     <div class="sfc-feed-meta">
                         <span><span class="material-symbols-outlined" style="font-size:15px;">schedule</span> ${recipe.time_mins} мин</span>
                         <span><span class="material-symbols-outlined" style="font-size:15px;">local_fire_department</span> ${recipe.calories} ккал</span>
                     </div>
-                    ${missingBanner}
+                    ${availabilityHtml}
                     <div class="sfc-feed-ingredients">
                         ${ingHtml}
                     </div>
@@ -638,7 +650,7 @@
                 ? '<span class="material-symbols-outlined" style="color:#137333; font-size:18px;">check_circle</span>'
                 : '<span class="material-symbols-outlined" style="color:#b06000; font-size:18px;">shopping_basket</span>';
             const statusLabel = ing.available
-                ? '<span style="color:#137333; font-size:12px; margin-left:6px; font-weight:500;">в холодильнике</span>'
+                ? '<span style="color:#137333; font-size:12px; margin-left:6px; font-weight:500;">в наличии</span>'
                 : '<span style="color:#b06000; font-size:12px; margin-left:6px; font-weight:500;">нужно докупить</span>';
 
             ingHtml += `<li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #e8eaed;">
@@ -660,10 +672,10 @@
 
         dom.modalContent.innerHTML = `
             <div style="margin-bottom: 20px;">
-                <span class="sfc-qty-tag" style="margin-bottom: 8px; display:inline-block;">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
+                <span class="sfc-recipe-category" style="margin-bottom: 6px; display:inline-block;">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
                 <h2 class="sfc-recipe-sheet-title" style="margin: 4px 0 8px; font-size: 22px; font-weight:700;">${escapeHtml(recipe.title)}</h2>
                 <p style="color: #5f6368; font-size: 14px; margin:0 0 16px;">${escapeHtml(recipe.description || '')}</p>
-                <div style="display:flex; gap:16px; background:#f8f9fa; border:1px solid #dadce0; border-radius:8px; padding:12px 16px; font-size:13px; font-weight:500;">
+                <div style="display:flex; gap:16px; background:#f8f9fa; border:1px solid #dadce0; border-radius:6px; padding:10px 14px; font-size:13px; font-weight:500;">
                     <span>Время: <strong>${recipe.time_mins} мин</strong></span>
                     <span>Калории: <strong>${recipe.calories} ккал</strong></span>
                     <span>Б: <strong>${recipe.protein}г</strong></span>
@@ -696,7 +708,7 @@
         dom.recipeModal.style.display = 'flex';
     }
 
-    // Render Weekly Plan (Google Calendar Style)
+    // Render Weekly Plan
     function renderWeeklyPlan() {
         if (!state.weeklyPlan || state.weeklyPlan.length === 0) return;
 
@@ -723,7 +735,7 @@
         dom.dayViewContainer.innerHTML = `
             <div class="sfc-day-strategy-notice">
                 <span class="material-symbols-outlined" style="color:#1a73e8;">tips_and_updates</span>
-                <span><strong>План на день:</strong> ${escapeHtml(activeDay.focus)}</span>
+                <span><strong>Фокус дня:</strong> ${escapeHtml(activeDay.focus)}</span>
             </div>
 
             <div class="sfc-day-slots-grid">
@@ -733,7 +745,7 @@
                 ${renderMealSlot(state.activeDayIndex, 'Перекус', 'snack', meals.snack)}
             </div>
 
-            <div style="margin-top:16px; background:#ffffff; border:1px solid #dadce0; border-radius:8px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:13px;">
+            <div style="margin-top:16px; background:#ffffff; border:1px solid #dadce0; border-radius:6px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:13px;">
                 <div>
                     <strong>Итого за день:</strong>
                     <span style="margin-left:8px; color:#5f6368;">${activeDay.nutrition.calories} ккал</span>
@@ -768,8 +780,8 @@
         if (!meal) return '';
         const isFromFridge = meal.can_cook_from_fridge !== undefined ? meal.can_cook_from_fridge : meal.can_cook_now;
         const statusHtml = isFromFridge
-            ? '<span class="sfc-slot-status sfc-slot-status-ready"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Из холодильника</span>'
-            : `<span class="sfc-slot-status sfc-slot-status-shop" title="${escapeHtml((meal.missing_items || []).join(', '))}"><span class="material-symbols-outlined" style="font-size:13px;">shopping_basket</span> + Докупить: ${(meal.missing_items || []).slice(0, 1).join(', ')}</span>`;
+            ? `<span class="sfc-slot-state ready"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Из холодильника</span>`
+            : `<span class="sfc-slot-state shop"><span class="material-symbols-outlined" style="font-size:13px;">shopping_bag</span> Докупить: ${(meal.missing_items || []).slice(0, 1).join(', ')}</span>`;
 
         return `
             <div class="sfc-slot-card">
@@ -800,7 +812,7 @@
     function openSwapModal(dayIndex, slotKey, mealType) {
         state.currentSwapSlot = { dayIndex, slotKey, mealType };
         dom.swapTitle.textContent = `Замена блюда: ${mealType} (${state.weeklyPlan[dayIndex].day_name})`;
-        dom.swapSubtitle.textContent = 'Выберите блюдо только из продуктов холодильника или с покупкой недостающего';
+        dom.swapSubtitle.textContent = 'Выберите блюдо только из имеющихся продуктов или с докупкой';
         dom.swapList.innerHTML = '';
 
         let candidates = (state.recipesByType && state.recipesByType[mealType]) ? state.recipesByType[mealType] : [];
@@ -823,8 +835,8 @@
         uniqueCandidates.forEach(cand => {
             const isReady = cand.can_cook_now;
             const tag = isReady
-                ? '<span class="sfc-slot-status sfc-slot-status-ready"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Только из холодильника</span>'
-                : `<span class="sfc-slot-status sfc-slot-status-shop"><span class="material-symbols-outlined" style="font-size:13px;">shopping_basket</span> + Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
+                ? '<span style="color:#137333; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Только из холодильника</span>'
+                : `<span style="color:#b06000; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px;">shopping_bag</span> Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
 
             const item = document.createElement('div');
             item.className = 'sfc-swap-item';
@@ -886,7 +898,6 @@
         });
         state.weeklyPlan[dayIndex].nutrition = { calories: cals, protein: p, fat: f, carbs: c };
 
-        // Recalculate entire shopping list across all 7 days
         recalculateShoppingList();
 
         dom.swapModal.style.display = 'none';
@@ -965,15 +976,15 @@
             alert('Ошибка сервера при сохранении.');
         })
         .finally(() => {
-            dom.btnSavePlan.innerHTML = '<span class="material-symbols-outlined">bookmark</span> <span>Сохранить в WordPress</span>';
+            dom.btnSavePlan.innerHTML = '<span class="material-symbols-outlined">bookmark_add</span> <span>Сохранить план</span>';
             dom.btnSavePlan.disabled = false;
         });
     }
 
-    // Render Shopping List (Google Keep Style)
+    // Render Shopping List
     function renderShoppingList() {
         if (!state.shoppingList || state.shoppingList.length === 0) {
-            dom.groupedShoppingContainer.innerHTML = '<p class="sfc-subtext">Все необходимые продукты уже есть в холодильнике.</p>';
+            dom.groupedShoppingContainer.innerHTML = '<p class="sfc-subtext">Все необходимые продукты уже есть в наличии в холодильнике.</p>';
             dom.shoppingRemainingCount.textContent = '0';
             return;
         }
@@ -1030,8 +1041,24 @@
         dom.shoppingRemainingCount.textContent = unchecked.length;
     }
 
-    // Fetch Stores & AI Recommendations
+    // Show Location Prompt (never show Moscow if unknown)
+    function showLocationPrompt() {
+        if (dom.locationPrompt) dom.locationPrompt.style.display = 'flex';
+        if (dom.recHero) dom.recHero.style.display = 'none';
+        if (dom.storesList) {
+            dom.storesList.innerHTML = '<div class="sfc-empty-placeholder" style="padding:24px 12px;"><span class="material-symbols-outlined sfc-empty-icon">near_me</span><h3>Ожидание местоположения</h3><p>Разрешите доступ к геопозиции или введите город выше, чтобы найти ближайшие магазины.</p></div>';
+        }
+    }
+
+    // Fetch Stores & Recommendations
     function fetchStoresAndRecommendations() {
+        if (!state.userLocation || !state.userLocation.lat || !state.userLocation.lon) {
+            showLocationPrompt();
+            return;
+        }
+
+        if (dom.locationPrompt) dom.locationPrompt.style.display = 'none';
+
         fetch(sfcConfig.restUrl + 'find-stores', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': sfcConfig.nonce },
@@ -1043,12 +1070,14 @@
         })
         .then(r => r.json())
         .then(data => {
-            if (data.success) {
+            if (data.success && data.stores && data.stores.length > 0) {
                 state.stores = data.stores;
                 state.recommendation = data.recommendation;
                 renderStoreRecommendation(data.recommendation);
                 renderStoresList(data.stores);
                 updateMapMarkers();
+            } else if (data.needs_location) {
+                showLocationPrompt();
             }
         })
         .catch(e => console.error('Error fetching stores:', e));
@@ -1056,7 +1085,11 @@
 
     // Render Store Recommendation Card
     function renderStoreRecommendation(rec) {
-        if (!rec || !rec.store) return;
+        if (!rec || !rec.store) {
+            if (dom.recHero) dom.recHero.style.display = 'none';
+            return;
+        }
+        if (dom.recHero) dom.recHero.style.display = 'block';
         const store = rec.store;
 
         dom.recTitle.textContent = store.name;
@@ -1091,12 +1124,16 @@
         }
     }
 
-    // Render Stores List (Google Places Cards)
+    // Render Stores List
     function renderStoresList(stores) {
         dom.storesList.innerHTML = '';
         if (!stores || stores.length === 0) {
-            dom.storesList.innerHTML = '<p class="sfc-subtext">Супермаркеты не найдены.</p>';
+            dom.storesList.innerHTML = '<p class="sfc-subtext">Супермаркеты поблизости не найдены. Попробуйте указать другой адрес.</p>';
             return;
+        }
+
+        if (dom.storesSubtitle && state.userCityName) {
+            dom.storesSubtitle.textContent = `Найдено ${stores.length} магазинов рядом с вами (${state.userCityName})`;
         }
 
         stores.forEach(store => {
@@ -1106,7 +1143,7 @@
 
             let tagsHtml = '';
             (store.features || []).forEach(f => {
-                tagsHtml += `<span class="sfc-tag-sm">${escapeHtml(f)}</span>`;
+                tagsHtml += `<span style="font-size:11px; color:#5f6368; margin-right:6px;">• ${escapeHtml(f)}</span>`;
             });
 
             item.innerHTML = `
@@ -1115,7 +1152,7 @@
                     <span style="color:#137333; font-weight:600;">${store.distance_m} м</span>
                 </div>
                 <div class="sfc-place-addr">${escapeHtml(store.address || 'Адрес уточняется')} • ${escapeHtml(store.opening_hours || '08:00-23:00')}</div>
-                <div class="sfc-place-tags">${tagsHtml}</div>
+                <div style="margin-top:4px;">${tagsHtml}</div>
             `;
 
             item.addEventListener('click', () => {
@@ -1132,12 +1169,16 @@
         });
     }
 
-    // Leaflet Map (Google Maps Style)
+    // Leaflet Map
     function initOrRefreshMap() {
         if (!dom.mapContainer) return;
 
+        const defaultLat = state.userLocation ? state.userLocation.lat : 55.0;
+        const defaultLon = state.userLocation ? state.userLocation.lon : 37.0;
+        const zoom = state.userLocation ? 15 : 4;
+
         if (!state.map) {
-            state.map = L.map(dom.mapContainer).setView([state.userLocation.lat, state.userLocation.lon], 15);
+            state.map = L.map(dom.mapContainer).setView([defaultLat, defaultLon], zoom);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -1145,7 +1186,9 @@
             }).addTo(state.map);
         } else {
             state.map.invalidateSize();
-            state.map.setView([state.userLocation.lat, state.userLocation.lon]);
+            if (state.userLocation) {
+                state.map.setView([state.userLocation.lat, state.userLocation.lon], 15);
+            }
         }
 
         updateMapMarkers();
@@ -1158,7 +1201,9 @@
         state.mapMarkers = [];
         if (state.userMarker) state.map.removeLayer(state.userMarker);
 
-        // User Marker (Google Blue Pin)
+        if (!state.userLocation) return;
+
+        // User Marker
         const userIcon = L.divIcon({
             className: 'sfc-user-pin',
             html: '<div style="background:#1a73e8; color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">person</span></div>',
@@ -1168,7 +1213,7 @@
 
         state.userMarker = L.marker([state.userLocation.lat, state.userLocation.lon], { icon: userIcon })
             .addTo(state.map)
-            .bindPopup('<strong>Вы здесь</strong>');
+            .bindPopup('<strong>Вы находитесь здесь</strong>');
 
         // Store Markers
         (state.stores || []).forEach(store => {
@@ -1200,22 +1245,24 @@
         });
     }
 
-    // Geolocation with reverse geocoding to update city name
-    function requestUserGeolocation() {
+    // Geolocation: Asks browser for GPS, reverse geocodes to get REAL city
+    function requestUserGeolocation(isSilentAuto) {
         if (!navigator.geolocation) {
-            alert('Геолокация не поддерживается вашим браузером.');
+            if (!isSilentAuto) alert('Геолокация не поддерживается вашим браузером.');
             return;
         }
 
-        dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Определение...</span>';
+        if (dom.btnGeolocate) {
+            dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Определение...</span>';
+        }
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
-                state.userLocation.lat = lat;
-                state.userLocation.lon = lon;
+                state.userLocation = { lat: lat, lon: lon };
 
+                // Reverse geocode via Nominatim to detect real city / town
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`)
                     .then(r => r.json())
                     .then(geoData => {
@@ -1230,25 +1277,40 @@
                                    '';
                         }
                         if (!city && geoData && geoData.display_name) {
-                            city = geoData.display_name.split(',')[0];
+                            city = geoData.display_name.split(',')[0].trim();
                         }
-                        if (city && dom.searchAddressInput) {
-                            dom.searchAddressInput.value = city;
+                        if (city) {
+                            state.userCityName = city;
+                            if (dom.searchAddressInput) {
+                                dom.searchAddressInput.value = city;
+                            }
                         }
                     })
                     .catch(e => console.warn('Reverse geocode error:', e))
                     .finally(() => {
-                        dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                        if (dom.btnGeolocate) {
+                            dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                        }
+                        if (dom.locationPrompt) {
+                            dom.locationPrompt.style.display = 'none';
+                        }
                         if (state.map) {
-                            state.map.setView([state.userLocation.lat, state.userLocation.lon], 15);
+                            state.map.setView([lat, lon], 15);
                         }
                         fetchStoresAndRecommendations();
                     });
             },
             (err) => {
-                console.warn('Geolocation denied or failed:', err);
-                dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
-                alert('Не удалось определить GPS координаты. Пожалуйста, введите название вашего города в строке поиска.');
+                console.warn('Geolocation denied or unavailable:', err);
+                if (dom.btnGeolocate) {
+                    dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                }
+                if (!isSilentAuto) {
+                    alert('Пожалуйста, разрешите доступ к геопозиции в браузере или введите ваш город в строке поиска.');
+                }
+                if (!state.userLocation) {
+                    showLocationPrompt();
+                }
             },
             { timeout: 10000, enableHighAccuracy: true }
         );
@@ -1257,7 +1319,10 @@
     // Geocoding city or street address input
     function searchCityAddress() {
         const query = dom.searchAddressInput.value.trim();
-        if (!query) return;
+        if (!query) {
+            alert('Пожалуйста, введите название вашего города или улицы.');
+            return;
+        }
 
         dom.btnSearchCity.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span>';
 
@@ -1265,20 +1330,29 @@
             .then(r => r.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    state.userLocation.lat = parseFloat(data[0].lat);
-                    state.userLocation.lon = parseFloat(data[0].lon);
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    state.userLocation = { lat: lat, lon: lon };
 
-                    const detected = data[0].address?.city || data[0].address?.town || data[0].address?.village || data[0].display_name.split(',')[0];
+                    const detected = data[0].address?.city ||
+                                     data[0].address?.town ||
+                                     data[0].address?.village ||
+                                     data[0].display_name.split(',')[0].trim();
                     if (detected) {
+                        state.userCityName = detected;
                         dom.searchAddressInput.value = detected;
                     }
 
+                    if (dom.locationPrompt) {
+                        dom.locationPrompt.style.display = 'none';
+                    }
+
                     if (state.map) {
-                        state.map.setView([state.userLocation.lat, state.userLocation.lon], 15);
+                        state.map.setView([lat, lon], 15);
                     }
                     fetchStoresAndRecommendations();
                 } else {
-                    alert('Город или адрес не найден. Попробуйте ввести иначе.');
+                    alert('Город не найден. Проверьте правильность написания.');
                 }
             })
             .catch(e => {

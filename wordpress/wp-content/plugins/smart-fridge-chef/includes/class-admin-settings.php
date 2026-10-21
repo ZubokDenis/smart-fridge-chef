@@ -75,9 +75,9 @@ class SFC_Admin_Settings {
         $claude_model    = get_option( 'sfc_claude_model', 'claude-3-5-sonnet-20241022' );
         $gemini_key     = get_option( 'sfc_gemini_api_key', '' );
         $gemini_model   = get_option( 'sfc_gemini_model', 'gemini-1.5-flash' );
-        $default_city   = get_option( 'sfc_default_city', 'Москва' );
-        $default_lat    = get_option( 'sfc_default_lat', '55.7558' );
-        $default_lon    = get_option( 'sfc_default_lon', '37.6173' );
+        $default_city   = get_option( 'sfc_default_city', '' );
+        $default_lat    = get_option( 'sfc_default_lat', '' );
+        $default_lon    = get_option( 'sfc_default_lon', '' );
         ?>
         <div class="wrap" style="max-width: 880px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
             <div style="background: #ffffff; border: 1px solid #dadce0; border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
