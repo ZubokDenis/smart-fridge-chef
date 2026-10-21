@@ -2,6 +2,10 @@
 ## «Умный Шеф: Холодильник & Рацион» (Smart Fridge Chef)
 ### Программный комплекс на базе WordPress с мультимодальным ИИ и геомодулем
 
+> 📖 **[Перейти к пошаговой инструкции по запуску (RUN.md)](./RUN.md)**  
+> ⚡ **Быстрый старт (Windows):** дважды кликните на [`start-server.bat`](./start-server.bat) и перейдите на [http://localhost:8000](http://localhost:8000).  
+> 🔑 **Панель управления:** [http://localhost:8000/wp-admin](http://localhost:8000/wp-admin) (`admin` / `admin12345`).
+
 ---
 
 ## 1. Паспорт проекта и общие сведения
