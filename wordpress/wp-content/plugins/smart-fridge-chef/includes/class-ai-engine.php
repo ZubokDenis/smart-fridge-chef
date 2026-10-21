@@ -1168,10 +1168,18 @@ class SFC_AI_Engine {
 
             $can_cook_now = ( $total_required > 0 && $matched_required === $total_required );
 
+            $missing_names = [];
+            foreach ( $ingredient_status as $ing_st ) {
+                if ( ! $ing_st['available'] ) {
+                    $missing_names[] = $ing_st['name'];
+                }
+            }
+
             $recipe['match_score'] = $score;
             $recipe['can_cook_now'] = $can_cook_now;
             $recipe['ingredients_status'] = $ingredient_status;
             $recipe['missing_count'] = $total_all - $matched_all;
+            $recipe['missing_ingredients'] = $missing_names;
 
             $matched[] = $recipe;
         }
@@ -1269,16 +1277,25 @@ class SFC_AI_Engine {
 
             $focus = ( $i < 3 ) ? 'Утилизация скоропортящихся запасов из холодильника' : 'Базовый рацион + свежие плановые покупки';
 
+            $enriched_meals = [];
+            foreach ( [ 'breakfast' => $breakfast, 'lunch' => $lunch, 'dinner' => $dinner, 'snack' => $snack ] as $slot_key => $slot_meal ) {
+                $missing_slot_items = [];
+                foreach ( $slot_meal['ingredients'] as $ing ) {
+                    if ( empty( $available_roots[$ing['root']] ) ) {
+                        $missing_slot_items[] = $ing['name'];
+                    }
+                }
+                $m = $slot_meal;
+                $m['missing_items'] = $missing_slot_items;
+                $m['can_cook_from_fridge'] = empty( $missing_slot_items );
+                $enriched_meals[$slot_key] = $m;
+            }
+
             $weekly_schedule[] = [
                 'day_index' => $i,
                 'day_name'  => $day_name,
                 'focus'     => $focus,
-                'meals'     => [
-                    'breakfast' => $breakfast,
-                    'lunch'     => $lunch,
-                    'dinner'    => $dinner,
-                    'snack'     => $snack,
-                ],
+                'meals'     => $enriched_meals,
                 'nutrition' => [
                     'calories' => $daily_calories,
                     'protein'  => $daily_protein,
@@ -1301,7 +1318,8 @@ class SFC_AI_Engine {
             'days'             => $weekly_schedule,
             'shopping_list'    => array_values( $needed_ingredients ),
             'grouped_shopping' => $grouped_shopping,
-            'total_items_to_buy' => count( $needed_ingredients )
+            'total_items_to_buy' => count( $needed_ingredients ),
+            'recipes_by_type'  => $by_type,
         ];
     }
 }

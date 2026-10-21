@@ -84,12 +84,16 @@ class SFC_API_Controller {
 
         $input_type = $params['type'] ?? 'text'; // 'text' or 'photo'
         $products = [];
+        $image_info = null;
 
         if ( $input_type === 'photo' ) {
             $image_base64 = $params['image_base64'] ?? '';
             $mime_type    = $params['mime_type'] ?? 'image/jpeg';
 
-            // Strip data:image/...;base64, prefix if present
+            // Convert to WebP and create thumbnail
+            $image_info = SFC_Image_Handler::process_upload( $image_base64, $mime_type );
+
+            // Strip data:image/...;base64, prefix if present for AI
             if ( preg_match( '/^data:image\/(\w+);base64,/', $image_base64, $m ) ) {
                 $mime_type = 'image/' . $m[1];
                 $image_base64 = substr( $image_base64, strpos( $image_base64, ',' ) + 1 );
@@ -102,9 +106,10 @@ class SFC_API_Controller {
         }
 
         return rest_ensure_response([
-            'success'  => true,
-            'count'    => count( $products ),
-            'products' => $products,
+            'success'    => true,
+            'count'      => count( $products ),
+            'products'   => $products,
+            'image_info' => $image_info,
         ]);
     }
 
@@ -150,6 +155,7 @@ class SFC_API_Controller {
             'shopping_list'    => $plan['shopping_list'],
             'grouped_shopping' => $plan['grouped_shopping'],
             'total_to_buy'     => $plan['total_items_to_buy'],
+            'recipes_by_type'  => $plan['recipes_by_type'] ?? [],
         ]);
     }
 

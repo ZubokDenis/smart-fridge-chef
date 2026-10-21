@@ -135,7 +135,7 @@ class SFC_Store_Locator {
             return [
                 'chain'    => 'ВкусВилл',
                 'color'    => '#10b981', // green
-                'icon'     => '🥦',
+                'icon'     => 'eco',
                 'features' => [ 'Свежая молочка', 'Эко-продукты', 'Зелень и ягоды' ]
             ];
         }
@@ -144,7 +144,7 @@ class SFC_Store_Locator {
             return [
                 'chain'    => 'Пятёрочка',
                 'color'    => '#ef4444', // red
-                'icon'     => '🔴',
+                'icon'     => 'shopping_basket',
                 'features' => [ 'Выгодные цены', 'Скидки и акции', 'Базовая бакалея' ]
             ];
         }
@@ -153,7 +153,7 @@ class SFC_Store_Locator {
             return [
                 'chain'    => 'Магнит',
                 'color'    => '#dc2626', // dark red
-                'icon'     => '🛒',
+                'icon'     => 'shopping_cart',
                 'features' => [ 'Магазин у дома', 'Экономный выбор', 'Свежий хлеб' ]
             ];
         }
@@ -162,7 +162,7 @@ class SFC_Store_Locator {
             return [
                 'chain'    => 'Перекрёсток',
                 'color'    => '#059669', // emerald
-                'icon'     => '🍀',
+                'icon'     => 'storefront',
                 'features' => [ 'Свежее мясо и рыба', 'Премиум сыры', 'Собственная кулинария' ]
             ];
         }
@@ -171,7 +171,7 @@ class SFC_Store_Locator {
             return [
                 'chain'    => 'Лента',
                 'color'    => '#2563eb', // blue
-                'icon'     => '🌻',
+                'icon'     => 'local_mall',
                 'features' => [ 'Большой ассортимент', 'Закупка на неделю', 'Выгодные упаковки' ]
             ];
         }
@@ -180,7 +180,7 @@ class SFC_Store_Locator {
             return [
                 'chain'    => 'Дикси',
                 'color'    => '#f97316', // orange
-                'icon'     => '🟠',
+                'icon'     => 'store',
                 'features' => [ 'У дома', 'Низкие цены', 'Свежие фрукты' ]
             ];
         }
@@ -188,7 +188,7 @@ class SFC_Store_Locator {
         return [
             'chain'    => 'Универсам',
             'color'    => '#6b7280', // gray
-            'icon'     => '🏬',
+            'icon'     => 'storefront',
             'features' => [ 'Продукты первой необходимости', 'Удобное расположение' ]
         ];
     }

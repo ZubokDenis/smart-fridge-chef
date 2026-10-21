@@ -107,10 +107,10 @@ class SFC_Admin_Settings {
                             </th>
                             <td>
                                 <select name="sfc_ai_provider" id="sfc_ai_provider_select" style="min-width: 320px; padding: 4px 8px; font-size: 14px;">
-                                    <option value="ollama_cloud" <?php selected( $provider, 'ollama_cloud' ); ?>>☁️ Ollama Cloud (https://api.ollama.com или свой сервер)</option>
-                                    <option value="claude" <?php selected( $provider, 'claude' ); ?>>🧠 Anthropic Claude (claude-3-5-sonnet)</option>
-                                    <option value="gemini" <?php selected( $provider, 'gemini' ); ?>>✨ Google Gemini (1.5 / 2.0 Flash)</option>
-                                    <option value="builtin" <?php selected( $provider, 'builtin' ); ?>>⚙️ Встроенный экспертный движок (автономный)</option>
+                                    <option value="ollama_cloud" <?php selected( $provider, 'ollama_cloud' ); ?>>Ollama Cloud (https://api.ollama.com или свой сервер)</option>
+                                    <option value="claude" <?php selected( $provider, 'claude' ); ?>>Anthropic Claude (claude-3-5-sonnet)</option>
+                                    <option value="gemini" <?php selected( $provider, 'gemini' ); ?>>Google Gemini (1.5 / 2.0 Flash)</option>
+                                    <option value="builtin" <?php selected( $provider, 'builtin' ); ?>>Встроенный экспертный движок (автономный)</option>
                                 </select>
                                 <p class="description">Выберите, какой ИИ-сервер будет отвечать за распознавание продуктов с фото и анализ супермаркетов.</p>
                             </td>
@@ -242,9 +242,9 @@ class SFC_Admin_Settings {
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.success) {
-                        resultEl.innerHTML = '<span style="color:#137333; font-weight:600;">✓ ' + data.message + (data.latency ? ' (' + data.latency + ')' : '') + '</span>';
+                        resultEl.innerHTML = '<span style="color:#137333; font-weight:600;">[OK] ' + data.message + (data.latency ? ' (' + data.latency + ')' : '') + '</span>';
                     } else {
-                        resultEl.innerHTML = '<span style="color:#c5221f; font-weight:600;">✕ ' + data.message + '</span>';
+                        resultEl.innerHTML = '<span style="color:#c5221f; font-weight:600;">[Ошибка] ' + data.message + '</span>';
                     }
                 })
                 .catch(function(e) {

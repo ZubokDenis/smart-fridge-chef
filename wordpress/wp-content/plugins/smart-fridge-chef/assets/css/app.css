@@ -1,6 +1,7 @@
 /**
  * Smart Fridge Chef - Clean Standard UI
- * Design Language: Google Material Design 3 + Instagram Web
+ * Typography: Lora (Headings), Montserrat (UI, Controls, Chips, Badges), Roboto (Body, Text)
+ * Design Language: Google Material Design 3 + Clean Culinary Editorial Publication
  */
 
 :root {
@@ -33,15 +34,15 @@
     --m3-radius-lg: 16px;
     --m3-radius-full: 9999px;
 
-    --m3-elevation-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-    --m3-elevation-2: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+    --m3-elevation-1: 0 1px 2px 0 rgba(60,64,67,0.15), 0 1px 3px 1px rgba(60,64,67,0.1);
+    --m3-elevation-2: 0 2px 6px 0 rgba(60,64,67,0.15), 0 4px 10px 2px rgba(60,64,67,0.08);
 }
 
 .sfc-app-root {
-    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: var(--m3-on-surface);
     background-color: #fafafa;
-    max-width: 1200px;
+    max-width: 1220px;
     margin: 16px auto;
     padding: 0 16px 48px;
     box-sizing: border-box;
@@ -50,6 +51,49 @@
 
 .sfc-app-root * {
     box-sizing: border-box;
+}
+
+/* Typography Standards: Lora (Headings), Montserrat (UI/Controls), Roboto (Body) */
+.sfc-app-title,
+.sfc-panel-header h2,
+.sfc-view-header h2,
+.sfc-feed-title,
+.sfc-modal-title h3,
+.sfc-rec-primary h3,
+.sfc-empty-placeholder h3,
+.sfc-places-wrapper h3,
+.sfc-slot-card h4,
+.sfc-recipe-sheet-title {
+    font-family: 'Lora', Georgia, 'Times New Roman', serif;
+    letter-spacing: -0.015em;
+}
+
+.sfc-nav-item,
+.sfc-segment,
+.sfc-btn-m3,
+.sfc-btn-text,
+.sfc-btn-icon,
+.sfc-filter-chip,
+.sfc-chip-item,
+.sfc-counter,
+.sfc-match-chip,
+.sfc-fresh-tag,
+.sfc-qty-tag,
+.sfc-slot-tag,
+.sfc-cal-day-btn,
+.sfc-tag-sm,
+.sfc-data-table th,
+.sfc-rec-engine-tag,
+.sfc-rec-dist-chip,
+.sfc-badge,
+.sfc-feed-category,
+.sfc-slot-status {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: -0.01em;
+}
+
+p, span, td, li, textarea, input, label, .sfc-subtext, .sfc-feed-meta, .sfc-feed-ingredients {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* Material Symbols alignment */
@@ -102,11 +146,10 @@
 }
 
 .sfc-app-title {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
     color: var(--m3-on-surface);
     margin: 0;
-    letter-spacing: -0.01em;
 }
 
 .sfc-app-tagline {
@@ -126,7 +169,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 10px;
+    padding: 5px 12px;
     background: var(--m3-surface-container-low);
     border: 1px solid var(--m3-outline);
     border-radius: var(--m3-radius-full);
@@ -148,112 +191,56 @@
     color: var(--m3-on-surface-variant);
     display: inline-flex;
     align-items: center;
-    margin-left: 2px;
     text-decoration: none;
+    margin-left: 4px;
 }
-
 .sfc-ai-config-link:hover {
     color: var(--m3-primary);
 }
 
-/* Button styles (Google Material 3 Standard) */
-.sfc-btn-m3 {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: var(--m3-radius-full);
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    text-decoration: none;
-    line-height: 1.4;
-    white-space: nowrap;
-}
-
-.sfc-btn-primary {
-    background: var(--m3-primary);
-    color: #ffffff;
-}
-.sfc-btn-primary:hover {
-    background: var(--m3-primary-hover);
-    box-shadow: 0 1px 2px rgba(60,64,67,0.3);
-}
-
-.sfc-btn-tonal {
-    background: var(--m3-surface-container-high);
-    color: var(--m3-on-surface);
-}
-.sfc-btn-tonal:hover {
-    background: var(--m3-outline);
-}
-
-.sfc-btn-outlined {
-    background: #ffffff;
-    border-color: var(--m3-outline);
-    color: var(--m3-on-surface);
-}
-.sfc-btn-outlined:hover {
-    background: var(--m3-surface-container-low);
-    border-color: #c4c7c5;
-}
-
 .sfc-btn-text {
     background: transparent;
-    color: var(--m3-on-surface-variant);
     border: none;
-    padding: 6px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m3-on-surface-variant);
+    padding: 6px 10px;
+    border-radius: var(--m3-radius-sm);
+    transition: background 0.15s ease;
 }
 .sfc-btn-text:hover {
     background: var(--m3-surface-container);
-    color: var(--m3-on-surface);
+    color: var(--m3-primary);
 }
 
 .sfc-btn-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
     background: transparent;
+    border: none;
+    cursor: pointer;
     color: var(--m3-on-surface-variant);
+    padding: 6px;
+    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    transition: background 0.15s ease;
 }
 .sfc-btn-icon:hover {
     background: var(--m3-surface-container);
-    color: var(--m3-on-surface);
-}
-
-.sfc-btn-sm {
-    padding: 4px 12px;
-    font-size: 13px;
-}
-
-.sfc-btn-lg {
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.sfc-btn-danger {
     color: var(--m3-error);
 }
 
-.sfc-btn-block {
-    width: 100%;
-}
-
-/* ================= NAV TABS (Instagram / Google Style) ================= */
+/* Navigation Segmented Tabs */
 .sfc-nav-tabs {
     display: flex;
-    padding: 0 16px;
     overflow-x: auto;
-    background: var(--m3-surface);
+    background: #ffffff;
+    border-radius: 0 0 var(--m3-radius-md) var(--m3-radius-md);
+    padding: 0 8px;
 }
 
 .sfc-nav-item {
@@ -261,34 +248,39 @@
     align-items: center;
     gap: 8px;
     padding: 14px 18px;
-    background: none;
+    background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--m3-on-surface-variant);
     cursor: pointer;
-    transition: all 0.15s ease;
     white-space: nowrap;
+    transition: all 0.15s ease;
 }
 
 .sfc-nav-item:hover {
-    color: var(--m3-on-surface);
+    color: var(--m3-primary);
+    background: var(--m3-surface-container-low);
 }
 
 .sfc-nav-item.active {
     color: var(--m3-primary);
     border-bottom-color: var(--m3-primary);
-    font-weight: 600;
 }
 
 .sfc-counter {
     background: var(--m3-surface-container-high);
     color: var(--m3-on-surface-variant);
     font-size: 11px;
-    font-weight: 600;
-    padding: 1px 6px;
+    font-weight: 700;
+    padding: 2px 7px;
     border-radius: var(--m3-radius-full);
+}
+
+.sfc-nav-item.active .sfc-counter {
+    background: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
 }
 
 .sfc-counter-alert {
@@ -296,7 +288,7 @@
     color: var(--m3-warning);
 }
 
-/* ================= LAYOUT ================= */
+/* Views display toggling */
 .sfc-view {
     display: none;
 }
@@ -304,6 +296,7 @@
     display: block;
 }
 
+/* Split Layout */
 .sfc-split-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -316,29 +309,30 @@
     }
 }
 
+/* Panels */
 .sfc-panel {
     background: var(--m3-surface);
     border: 1px solid var(--m3-outline);
     border-radius: var(--m3-radius-md);
     padding: 20px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .sfc-panel-header {
     margin-bottom: 16px;
 }
 
-.sfc-panel-header h2, .sfc-panel-header h3 {
-    margin: 0;
-    font-size: 16px;
+.sfc-panel-header h2 {
+    font-size: 18px;
     font-weight: 700;
     color: var(--m3-on-surface);
+    margin: 0 0 4px;
 }
 
 .sfc-subtext {
-    margin: 4px 0 0;
     font-size: 13px;
     color: var(--m3-on-surface-variant);
+    margin: 0;
 }
 
 .sfc-flex-between {
@@ -347,13 +341,13 @@
     align-items: center;
 }
 
-/* ================= SEGMENTED CONTROL ================= */
+/* Segmented Control */
 .sfc-segmented-control {
     display: flex;
-    background: var(--m3-surface-container-low);
-    border: 1px solid var(--m3-outline);
-    padding: 3px;
-    border-radius: var(--m3-radius-full);
+    background: var(--m3-surface-container);
+    padding: 4px;
+    border-radius: var(--m3-radius-sm);
+    gap: 4px;
     margin-bottom: 16px;
 }
 
@@ -363,12 +357,12 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 7px 12px;
-    border: none;
+    padding: 8px 12px;
     background: transparent;
-    border-radius: var(--m3-radius-full);
+    border: none;
+    border-radius: 6px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--m3-on-surface-variant);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -376,49 +370,52 @@
 
 .sfc-segment.active {
     background: #ffffff;
-    color: var(--m3-on-surface);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-    font-weight: 600;
+    color: var(--m3-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-/* ================= DROPZONE (Google Drive Style) ================= */
+/* Upload Container */
 .sfc-hidden-input {
     display: none;
 }
 
 .sfc-dropzone {
-    border: 1px dashed var(--m3-outline);
+    border: 2px dashed var(--m3-outline);
     border-radius: var(--m3-radius-md);
-    background: var(--m3-surface-container-low);
-    padding: 36px 20px;
+    padding: 32px 20px;
     text-align: center;
+    background: var(--m3-surface-container-low);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
 }
 
-.sfc-dropzone:hover, .sfc-dropzone.dragover {
+.sfc-dropzone:hover,
+.sfc-dropzone.dragover {
     border-color: var(--m3-primary);
     background: var(--m3-primary-container);
 }
 
 .sfc-dropzone-icon {
+    font-size: 44px;
     color: var(--m3-primary);
     margin-bottom: 10px;
 }
-.sfc-dropzone-icon .material-symbols-outlined {
-    font-size: 40px !important;
-}
 
 .sfc-dropzone-label {
-    margin-bottom: 16px;
-}
-.sfc-dropzone-label strong {
-    display: block;
-    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 18px;
     color: var(--m3-on-surface);
 }
+
+.sfc-dropzone-label strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+
 .sfc-dropzone-label span {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--m3-on-surface-variant);
 }
 
@@ -426,23 +423,86 @@
     display: flex;
     justify-content: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
-/* Preview Box with Linear Progress */
+/* Buttons (Material Design 3) */
+.sfc-btn-m3 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: var(--m3-radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.sfc-btn-primary {
+    background: var(--m3-primary);
+    color: #ffffff;
+}
+.sfc-btn-primary:hover {
+    background: var(--m3-primary-hover);
+    box-shadow: var(--m3-elevation-1);
+}
+
+.sfc-btn-tonal {
+    background: var(--m3-surface-container-high);
+    color: var(--m3-on-surface);
+}
+.sfc-btn-tonal:hover {
+    background: #d3d6da;
+}
+
+.sfc-btn-outlined {
+    background: transparent;
+    border-color: var(--m3-outline);
+    color: var(--m3-primary);
+}
+.sfc-btn-outlined:hover {
+    background: var(--m3-primary-container);
+    border-color: #c2e7ff;
+}
+
+.sfc-btn-danger {
+    color: var(--m3-error);
+}
+.sfc-btn-danger:hover {
+    background: var(--m3-error-container);
+}
+
+.sfc-btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.sfc-btn-lg {
+    padding: 12px 24px;
+    font-size: 14px;
+}
+
+.sfc-btn-block {
+    width: 100%;
+}
+
+/* Image Preview */
 .sfc-preview-box {
     border: 1px solid var(--m3-outline);
     border-radius: var(--m3-radius-md);
     overflow: hidden;
-    background: #000;
+    background: var(--m3-surface);
 }
 
 .sfc-preview-img-container {
     position: relative;
-    max-height: 320px;
+    max-height: 280px;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: #000;
 }
 
 .sfc-preview-img-container img {
@@ -452,14 +512,13 @@
     display: block;
 }
 
-/* Material Linear Progress Bar */
 .sfc-linear-progress {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: rgba(255,255,255,0.4);
+    height: 3px;
+    background: rgba(255, 255, 255, 0.4);
     overflow: hidden;
 }
 
@@ -467,23 +526,22 @@
     width: 100%;
     height: 100%;
     background: var(--m3-primary);
-    animation: sfc-indeterminate 1.8s infinite ease-in-out;
+    animation: sfc-progress-anim 1.5s infinite linear;
     transform-origin: 0% 50%;
 }
 
-@keyframes sfc-indeterminate {
-    0% { transform: translateX(-100%); }
-    50% { transform: translateX(0%); }
-    100% { transform: translateX(100%); }
+@keyframes sfc-progress-anim {
+    0% { transform: translateX(-100%) scaleX(0.2); }
+    50% { transform: translateX(0%) scaleX(0.8); }
+    100% { transform: translateX(100%) scaleX(0.2); }
 }
 
 .sfc-preview-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
-    background: #ffffff;
-    border-top: 1px solid var(--m3-outline);
+    padding: 12px 16px;
+    background: var(--m3-surface);
 }
 
 .sfc-preview-status {
@@ -491,19 +549,19 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: var(--m3-on-surface);
+    color: var(--m3-on-surface-variant);
     font-weight: 500;
 }
 
 .sfc-spin {
-    animation: sfc-spin-anim 1.2s infinite linear;
+    animation: sfc-spin-anim 1s linear infinite;
 }
 @keyframes sfc-spin-anim {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-/* Textarea (Material Outlined) */
+/* Textarea */
 .sfc-textarea-m3 {
     width: 100%;
     padding: 12px;
@@ -527,7 +585,7 @@
     margin-top: 10px;
 }
 
-/* Filter Chips (Material / Instagram Stories pill style) */
+/* Filter Chips */
 .sfc-chip-group {
     margin-top: 16px;
     padding-top: 14px;
@@ -553,7 +611,8 @@
     background: var(--m3-surface);
     border: 1px solid var(--m3-outline);
     border-radius: var(--m3-radius-full);
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--m3-on-surface);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -608,12 +667,13 @@
     background: var(--m3-surface-container);
     padding: 2px 8px;
     border-radius: var(--m3-radius-sm);
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .sfc-fresh-tag {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     padding: 2px 8px;
     border-radius: var(--m3-radius-full);
 }
@@ -685,7 +745,7 @@
 }
 
 .sfc-view-header h2 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--m3-on-surface);
     margin: 0;
@@ -694,6 +754,7 @@
 .sfc-filter-chips {
     display: flex;
     gap: 6px;
+    flex-wrap: wrap;
 }
 
 .sfc-chip-item {
@@ -702,7 +763,7 @@
     border: 1px solid var(--m3-outline);
     border-radius: var(--m3-radius-full);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--m3-on-surface-variant);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -712,14 +773,13 @@
     background: var(--m3-primary-container);
     color: var(--m3-on-primary-container);
     border-color: #c2e7ff;
-    font-weight: 600;
 }
 
 /* ================= RECIPES GRID (Instagram Style Feed Cards) ================= */
 .sfc-recipe-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 18px;
+    gap: 20px;
 }
 
 .sfc-feed-card {
@@ -733,7 +793,7 @@
 }
 
 .sfc-feed-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     transform: translateY(-2px);
 }
 
@@ -750,25 +810,31 @@
     display: block;
 }
 
+/* Match Chips: Clean Editorial Badges */
 .sfc-match-chip {
     position: absolute;
     top: 10px;
     right: 10px;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: var(--m3-radius-sm);
     font-size: 11px;
     font-weight: 700;
-    backdrop-filter: blur(4px);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-.sfc-chip-green {
-    background: rgba(19, 115, 51, 0.9);
-    color: #ffffff;
+.sfc-chip-ready {
+    background: #e6f4ea;
+    color: #137333;
+    border: 1px solid #ceead6;
 }
 
-.sfc-chip-yellow {
-    background: rgba(176, 96, 0, 0.9);
-    color: #ffffff;
+.sfc-chip-shop {
+    background: #fef7e0;
+    color: #b06000;
+    border: 1px solid #feefc3;
 }
 
 .sfc-feed-body {
@@ -787,7 +853,7 @@
 }
 
 .sfc-feed-title {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 700;
     color: var(--m3-on-surface);
     margin: 0 0 6px;
@@ -799,7 +865,28 @@
     gap: 12px;
     font-size: 12px;
     color: var(--m3-on-surface-variant);
+    margin-bottom: 10px;
+}
+
+.sfc-feed-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* Missing items inline banner on card */
+.sfc-feed-missing-banner {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: var(--m3-radius-sm);
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #b06000;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
 }
 
 .sfc-feed-ingredients {
@@ -814,9 +901,12 @@
 .sfc-ing-pill {
     background: var(--m3-surface-container-low);
     border: 1px solid var(--m3-outline-variant);
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 4px;
     font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .sfc-feed-footer {
@@ -825,7 +915,7 @@
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid var(--m3-outline-variant);
-    padding-top: 10px;
+    padding-top: 12px;
 }
 
 .sfc-feed-macros {
@@ -844,7 +934,7 @@
 
 .sfc-cal-day-btn {
     flex: 1;
-    min-width: 100px;
+    min-width: 105px;
     padding: 10px 12px;
     background: #ffffff;
     border: 1px solid var(--m3-outline);
@@ -877,7 +967,7 @@
 .sfc-day-strategy-notice {
     background: var(--m3-surface-container-low);
     border-left: 3px solid var(--m3-primary);
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 0 var(--m3-radius-sm) var(--m3-radius-sm) 0;
     font-size: 13px;
     color: var(--m3-on-surface);
@@ -906,6 +996,17 @@
     padding: 14px;
     display: flex;
     flex-direction: column;
+    transition: box-shadow 0.15s ease;
+}
+.sfc-slot-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.sfc-slot-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
 }
 
 .sfc-slot-tag {
@@ -913,7 +1014,6 @@
     font-weight: 600;
     text-transform: uppercase;
     color: var(--m3-on-surface-subtle);
-    margin-bottom: 6px;
 }
 
 .sfc-slot-img {
@@ -921,6 +1021,7 @@
     border-radius: var(--m3-radius-sm);
     overflow: hidden;
     margin-bottom: 8px;
+    background: var(--m3-surface-container);
 }
 
 .sfc-slot-img img {
@@ -931,15 +1032,48 @@
 
 .sfc-slot-card h4 {
     margin: 0 0 6px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     line-height: 1.35;
+    color: var(--m3-on-surface);
 }
 
 .sfc-slot-meta {
     font-size: 11px;
     color: var(--m3-on-surface-variant);
+    margin-bottom: 8px;
+}
+
+/* Slot status badge: fridge vs shop */
+.sfc-slot-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
     margin-bottom: 10px;
+}
+.sfc-slot-status-ready {
+    background: #e6f4ea;
+    color: #137333;
+    border: 1px solid #ceead6;
+}
+.sfc-slot-status-shop {
+    background: #fef7e0;
+    color: #b06000;
+    border: 1px solid #feefc3;
+}
+
+.sfc-slot-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.sfc-slot-actions .sfc-btn-m3 {
+    flex: 1;
 }
 
 /* ================= SHOPPING LIST (Google Keep Style) ================= */
@@ -971,11 +1105,11 @@
 
 .sfc-keep-category h4 {
     margin: 0 0 8px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--m3-on-surface-subtle);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
 }
 
 .sfc-keep-item {
@@ -1276,7 +1410,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.45);
     z-index: 99999;
     display: flex;
     align-items: center;
@@ -1287,7 +1421,7 @@
 .sfc-modal-sheet {
     background: #ffffff;
     border-radius: var(--m3-radius-lg);
-    max-width: 620px;
+    max-width: 640px;
     width: 100%;
     max-height: 88vh;
     overflow-y: auto;
@@ -1311,6 +1445,16 @@
 }
 .sfc-modal-close:hover {
     color: var(--m3-on-surface);
+}
+
+.sfc-modal-title {
+    margin-bottom: 18px;
+}
+
+.sfc-modal-title h3 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    font-weight: 700;
 }
 
 .sfc-form-field {
@@ -1343,4 +1487,49 @@
     justify-content: flex-end;
     gap: 8px;
     margin-top: 18px;
+}
+
+/* Swap Modal Options List */
+.sfc-swap-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sfc-swap-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #ffffff;
+    border: 1px solid var(--m3-outline);
+    border-radius: var(--m3-radius-sm);
+    gap: 14px;
+    transition: all 0.15s ease;
+}
+
+.sfc-swap-item:hover {
+    border-color: var(--m3-primary);
+    background: var(--m3-surface-container-low);
+}
+
+.sfc-swap-item-info {
+    flex: 1;
+}
+
+.sfc-swap-item-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-family: 'Lora', Georgia, serif;
+    color: var(--m3-on-surface);
+}
+
+.sfc-swap-item-meta {
+    font-size: 12px;
+    color: var(--m3-on-surface-variant);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }

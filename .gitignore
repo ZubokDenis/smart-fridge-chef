@@ -2,3 +2,6 @@
 *.tar.gz
 __pycache__/
 *.pyc
+wordpress/wp-content/uploads/*
+!wordpress/wp-content/uploads/smart-fridge/.gitkeep
+

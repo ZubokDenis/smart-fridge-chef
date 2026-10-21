@@ -118,7 +118,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </div>
                         </div>
 
-                        <!-- Clean Image Preview (Without tacky lasers) -->
+                        <!-- Clean Image Preview with Progress Bar -->
                         <div id="sfc-image-preview-wrapper" class="sfc-preview-box" style="display: none;">
                             <div class="sfc-preview-img-container">
                                 <img id="sfc-image-preview" src="" alt="Фотография холодильника" />
@@ -129,7 +129,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <div class="sfc-preview-footer">
                                 <div class="sfc-preview-status" id="sfc-scan-status-text">
                                     <span class="material-symbols-outlined sfc-spin">sync</span>
-                                    <span>ИИ анализирует снимок...</span>
+                                    <span>ИИ анализирует снимок и подбирает рецепты...</span>
                                 </div>
                                 <button type="button" class="sfc-btn-m3 sfc-btn-text sfc-btn-danger" id="sfc-btn-remove-photo">
                                     <span class="material-symbols-outlined">delete</span>
@@ -227,9 +227,9 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <p class="sfc-subtext">Блюда, сформированные на основе продуктов вашего холодильника</p>
                 </div>
                 <div class="sfc-filter-chips" id="sfc-recipe-filters">
-                    <button type="button" class="sfc-chip-item active" data-filter="all">Все рецепты</button>
-                    <button type="button" class="sfc-chip-item" data-filter="ready">100% В наличии</button>
-                    <button type="button" class="sfc-chip-item" data-filter="need_more">Не хватает 1-2 ингредиентов</button>
+                    <button type="button" class="sfc-chip-item active" data-filter="all">Все варианты</button>
+                    <button type="button" class="sfc-chip-item" data-filter="ready">Только из холодильника</button>
+                    <button type="button" class="sfc-chip-item" data-filter="need_more">С быстрой докупкой</button>
                 </div>
             </div>
 
@@ -244,7 +244,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             <div class="sfc-view-header sfc-flex-between">
                 <div>
                     <h2>План питания на 7 дней</h2>
-                    <p class="sfc-subtext">Сбалансированный рацион с приоритетным использованием скоропортящихся продуктов</p>
+                    <p class="sfc-subtext">Сбалансированный рацион с возможностью замены блюд и вариативностью докупки</p>
                 </div>
                 <div class="sfc-header-button-group">
                     <button type="button" class="sfc-btn-m3 sfc-btn-outlined" id="sfc-btn-save-plan">
@@ -380,7 +380,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div class="sfc-map-searchbar">
                         <div class="sfc-search-input-box">
                             <span class="material-symbols-outlined sfc-search-icon">search</span>
-                            <input type="text" id="sfc-search-address" placeholder="Адрес или город..." value="Москва" />
+                            <input type="text" id="sfc-search-address" placeholder="Город или точный адрес..." value="Москва" />
                             <button type="button" id="sfc-btn-search-city" class="sfc-search-btn" title="Найти">
                                 <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
@@ -416,6 +416,22 @@ if ( ! defined( 'ABSPATH' ) ) {
             </button>
             <div id="sfc-modal-content">
                 <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Swap Meal Alternative -->
+    <div id="sfc-swap-modal" class="sfc-modal-scrim" style="display: none;">
+        <div class="sfc-modal-sheet">
+            <button type="button" class="sfc-modal-close" id="sfc-swap-modal-close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="sfc-modal-title">
+                <h3 id="sfc-swap-modal-title">Выбор альтернативного блюда</h3>
+                <p class="sfc-subtext" id="sfc-swap-modal-subtitle">Выберите блюдо из холодильника или с минимальной докупкой</p>
+            </div>
+            <div id="sfc-swap-list" class="sfc-swap-options-list">
+                <!-- Populated dynamically by JS -->
             </div>
         </div>
     </div>

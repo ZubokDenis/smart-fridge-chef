@@ -1,6 +1,13 @@
 /**
  * Smart Fridge Chef - Application Logic
- * Clean Standard Architecture with Multi-Provider AI (Ollama / Claude / Gemini)
+ * Clean Standard Architecture with Multi-Provider AI (Ollama Cloud / Claude / Gemini)
+ * Features:
+ * - Instant recipe generation immediately after photo upload
+ * - Dynamic geolocation & city change via Nominatim geocoding & reverse geocoding
+ * - Image WebP client-side conversion
+ * - Recipe & Weekly Plan variability with "Только из холодильника" vs "+ Докупить" indicators
+ * - Dynamic meal swapping in 7-day meal plan
+ * - No emojis / stickers (Strict Google Material Symbols)
  */
 
 (function () {
@@ -11,6 +18,7 @@
         products: [],
         recipes: { all: [], ready_now: [], need_more: [] },
         weeklyPlan: [],
+        recipesByType: {},
         shoppingList: [],
         groupedShopping: {},
         userLocation: { lat: sfcConfig.defaultLat || 55.7558, lon: sfcConfig.defaultLon || 37.6173 },
@@ -21,6 +29,7 @@
         mapMarkers: [],
         userMarker: null,
         aiStatus: null,
+        currentSwapSlot: null, // { dayIndex, slotKey, mealType }
     };
 
     // DOM Elements Cache
@@ -102,6 +111,11 @@
             manualAddForm: document.getElementById('sfc-manual-add-form'),
             addNameInput: document.getElementById('sfc-add-name'),
             addQtyInput: document.getElementById('sfc-add-qty'),
+            swapModal: document.getElementById('sfc-swap-modal'),
+            swapModalClose: document.getElementById('sfc-swap-modal-close'),
+            swapList: document.getElementById('sfc-swap-list'),
+            swapTitle: document.getElementById('sfc-swap-modal-title'),
+            swapSubtitle: document.getElementById('sfc-swap-modal-subtitle'),
         };
     }
 
@@ -197,7 +211,7 @@
                 alert('Пожалуйста, введите список продуктов');
                 return;
             }
-            sendAnalyzeRequest({ type: 'text', text: text });
+            sendAnalyzeRequest({ type: 'text', text: text }, false);
         });
 
         // Presets
@@ -238,14 +252,21 @@
             });
         });
 
-        // Modal close
+        // Modals close
         dom.modalCloseBtn.addEventListener('click', () => {
             dom.recipeModal.style.display = 'none';
         });
 
+        if (dom.swapModalClose) {
+            dom.swapModalClose.addEventListener('click', () => {
+                dom.swapModal.style.display = 'none';
+            });
+        }
+
         window.addEventListener('click', (e) => {
             if (e.target === dom.recipeModal) dom.recipeModal.style.display = 'none';
             if (e.target === dom.addModal) dom.addModal.style.display = 'none';
+            if (e.target === dom.swapModal) dom.swapModal.style.display = 'none';
         });
 
         // Save plan to WordPress
@@ -274,7 +295,7 @@
         }
     }
 
-    // Process Image File
+    // Process Image File: Canvas-based WebP conversion before uploading
     function handleFileSelect(e) {
         if (e.target.files && e.target.files[0]) {
             processImageFile(e.target.files[0]);
@@ -284,17 +305,49 @@
     function processImageFile(file) {
         const reader = new FileReader();
         reader.onload = function (e) {
-            const base64Data = e.target.result;
-            dom.previewImg.src = base64Data;
-            dom.dropzone.style.display = 'none';
-            dom.previewWrapper.style.display = 'block';
-            dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>ИИ анализирует снимок...</span>';
+            const rawDataUrl = e.target.result;
 
-            sendAnalyzeRequest({
-                type: 'photo',
-                image_base64: base64Data,
-                mime_type: file.type || 'image/jpeg'
-            });
+            // Render to HTML5 canvas to convert to WebP and bound dimensions to max 1600px
+            const img = new Image();
+            img.onload = function () {
+                const maxDim = 1600;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    const ratio = Math.min(maxDim / w, maxDim / h);
+                    w = Math.round(w * ratio);
+                    h = Math.round(h * ratio);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+
+                let webpDataUrl = rawDataUrl;
+                try {
+                    const converted = canvas.toDataURL('image/webp', 0.85);
+                    if (converted && converted.indexOf('data:image/webp') === 0) {
+                        webpDataUrl = converted;
+                    }
+                } catch (err) {
+                    console.warn('Canvas WebP conversion fallback:', err);
+                }
+
+                dom.previewImg.src = webpDataUrl;
+                dom.dropzone.style.display = 'none';
+                dom.previewWrapper.style.display = 'block';
+                dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>ИИ анализирует снимок и подбирает рецепты...</span>';
+
+                // Automatically trigger recipe and meal plan generation immediately upon photo upload
+                sendAnalyzeRequest({
+                    type: 'photo',
+                    image_base64: webpDataUrl,
+                    mime_type: 'image/webp'
+                }, true);
+            };
+            img.src = rawDataUrl;
         };
         reader.readAsDataURL(file);
     }
@@ -306,7 +359,7 @@
     }
 
     // REST: Analyze Input
-    function sendAnalyzeRequest(payload) {
+    function sendAnalyzeRequest(payload, autoGenerateAfter) {
         fetch(sfcConfig.restUrl + 'analyze-input', {
             method: 'POST',
             headers: {
@@ -322,7 +375,12 @@
                 saveProductsState();
                 renderProducts();
                 if (dom.scanStatusText) {
-                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined" style="color:#137333;">check_circle</span> <span>Распознано продуктов: ${data.products.length}</span>`;
+                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined" style="color:#137333;">check_circle</span> <span>Распознано: ${data.products.length} продуктов. Подбор рецептов...</span>`;
+                }
+
+                // If photo upload was processed, immediately generate recipes and meal plan
+                if (autoGenerateAfter) {
+                    generateRecipesAndPlan();
                 }
             } else {
                 alert('Не удалось распознать продукты. Проверьте подключение к Ollama/Claude или введите текстом.');
@@ -397,7 +455,7 @@
         sendAnalyzeRequest({
             type: 'text',
             text: `${name} ${quantity}`
-        });
+        }, false);
     }
 
     function saveProductsState() {
@@ -409,6 +467,7 @@
             state.products = [];
             state.recipes = { all: [], ready_now: [], need_more: [] };
             state.weeklyPlan = [];
+            state.recipesByType = {};
             state.shoppingList = [];
             state.groupedShopping = {};
             localStorage.removeItem('sfc_products');
@@ -437,7 +496,7 @@
 
         dom.textProducts.value = text;
         dom.btnModeText.click();
-        sendAnalyzeRequest({ type: 'text', text: text });
+        sendAnalyzeRequest({ type: 'text', text: text }, true);
     }
 
     // Generate Recipes & Plan
@@ -475,6 +534,7 @@
                 state.weeklyPlan = planData.plan;
                 state.shoppingList = planData.shopping_list;
                 state.groupedShopping = planData.grouped_shopping;
+                state.recipesByType = planData.recipes_by_type || {};
                 dom.badgeShopping.textContent = planData.total_to_buy;
 
                 renderWeeklyPlan();
@@ -506,15 +566,26 @@
             const card = document.createElement('div');
             card.className = 'sfc-feed-card';
 
-            const matchTag = recipe.can_cook_now
-                ? '<span class="sfc-match-chip sfc-chip-green">100% В наличии</span>'
-                : `<span class="sfc-match-chip sfc-chip-yellow">Совпадение ${recipe.match_score}%</span>`;
+            const isReady = recipe.can_cook_now;
+            const matchTag = isReady
+                ? '<span class="sfc-match-chip sfc-chip-ready"><span class="material-symbols-outlined" style="font-size:14px;">check</span> Только из холодильника</span>'
+                : `<span class="sfc-match-chip sfc-chip-shop"><span class="material-symbols-outlined" style="font-size:14px;">shopping_basket</span> Докупить: ${(recipe.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
+
+            let missingBanner = '';
+            if (!isReady && recipe.missing_ingredients && recipe.missing_ingredients.length > 0) {
+                missingBanner = `
+                    <div class="sfc-feed-missing-banner">
+                        <span class="material-symbols-outlined" style="font-size:15px;">shopping_cart</span>
+                        <span>Нужно докупить: <strong>${escapeHtml(recipe.missing_ingredients.join(', '))}</strong></span>
+                    </div>
+                `;
+            }
 
             let ingHtml = '';
-            recipe.ingredients_status.slice(0, 3).forEach(ing => {
-                const color = ing.available ? '#137333' : '#d93025';
-                const mark = ing.available ? '✓' : '✕';
-                ingHtml += `<span class="sfc-ing-pill" style="color:${color};">${mark} ${escapeHtml(ing.name)}</span>`;
+            (recipe.ingredients_status || []).slice(0, 4).forEach(ing => {
+                const color = ing.available ? '#137333' : '#b06000';
+                const icon = ing.available ? 'check' : 'shopping_bag';
+                ingHtml += `<span class="sfc-ing-pill" style="color:${color};"><span class="material-symbols-outlined" style="font-size:12px;">${icon}</span> ${escapeHtml(ing.name)}</span>`;
             });
 
             card.innerHTML = `
@@ -526,9 +597,10 @@
                     <span class="sfc-feed-category">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
                     <h3 class="sfc-feed-title">${escapeHtml(recipe.title)}</h3>
                     <div class="sfc-feed-meta">
-                        <span><span class="material-symbols-outlined">schedule</span> ${recipe.time_mins} мин</span>
-                        <span><span class="material-symbols-outlined">local_fire_department</span> ${recipe.calories} ккал</span>
+                        <span><span class="material-symbols-outlined" style="font-size:15px;">schedule</span> ${recipe.time_mins} мин</span>
+                        <span><span class="material-symbols-outlined" style="font-size:15px;">local_fire_department</span> ${recipe.calories} ккал</span>
                     </div>
+                    ${missingBanner}
                     <div class="sfc-feed-ingredients">
                         ${ingHtml}
                     </div>
@@ -561,13 +633,13 @@
 
     function openRecipeModal(recipe) {
         let ingHtml = '';
-        recipe.ingredients_status.forEach(ing => {
+        (recipe.ingredients_status || []).forEach(ing => {
             const mark = ing.available
                 ? '<span class="material-symbols-outlined" style="color:#137333; font-size:18px;">check_circle</span>'
-                : '<span class="material-symbols-outlined" style="color:#d93025; font-size:18px;">cancel</span>';
+                : '<span class="material-symbols-outlined" style="color:#b06000; font-size:18px;">shopping_basket</span>';
             const statusLabel = ing.available
-                ? '<span style="color:#137333; font-size:12px; margin-left:6px;">в наличии</span>'
-                : '<span style="color:#d93025; font-size:12px; margin-left:6px;">докупить</span>';
+                ? '<span style="color:#137333; font-size:12px; margin-left:6px; font-weight:500;">в холодильнике</span>'
+                : '<span style="color:#b06000; font-size:12px; margin-left:6px; font-weight:500;">нужно докупить</span>';
 
             ingHtml += `<li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #e8eaed;">
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -580,16 +652,16 @@
         });
 
         let stepHtml = '';
-        recipe.instructions.forEach((step, idx) => {
-            stepHtml += `<li style="margin-bottom:12px; line-height:1.5; color:#202124;">
+        (recipe.instructions || []).forEach((step, idx) => {
+            stepHtml += `<li style="margin-bottom:12px; line-height:1.55; color:#202124;">
                 <strong style="color:#1a73e8;">Шаг ${idx + 1}:</strong> ${escapeHtml(step)}
             </li>`;
         });
 
         dom.modalContent.innerHTML = `
             <div style="margin-bottom: 20px;">
-                <span class="sfc-qty-tag" style="margin-bottom: 8px; display:inline-block;">${escapeHtml(recipe.meal_type)}</span>
-                <h2 style="margin: 4px 0 8px; font-size: 20px; font-weight:700;">${escapeHtml(recipe.title)}</h2>
+                <span class="sfc-qty-tag" style="margin-bottom: 8px; display:inline-block;">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
+                <h2 class="sfc-recipe-sheet-title" style="margin: 4px 0 8px; font-size: 22px; font-weight:700;">${escapeHtml(recipe.title)}</h2>
                 <p style="color: #5f6368; font-size: 14px; margin:0 0 16px;">${escapeHtml(recipe.description || '')}</p>
                 <div style="display:flex; gap:16px; background:#f8f9fa; border:1px solid #dadce0; border-radius:8px; padding:12px 16px; font-size:13px; font-weight:500;">
                     <span>Время: <strong>${recipe.time_mins} мин</strong></span>
@@ -601,14 +673,14 @@
             </div>
 
             <div style="margin-bottom: 22px;">
-                <h3 style="font-size: 15px; margin: 0 0 8px; color:#202124;">Необходимые ингредиенты</h3>
+                <h3 style="font-size: 16px; margin: 0 0 8px; color:#202124; font-family:'Lora',serif;">Необходимые ингредиенты</h3>
                 <ul style="list-style:none; padding:0; margin:0;">
                     ${ingHtml}
                 </ul>
             </div>
 
             <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 15px; margin: 0 0 10px; color:#202124;">Инструкция приготовления</h3>
+                <h3 style="font-size: 16px; margin: 0 0 10px; color:#202124; font-family:'Lora',serif;">Инструкция приготовления</h3>
                 <ol style="padding-left: 20px; margin:0;">
                     ${stepHtml}
                 </ol>
@@ -655,10 +727,10 @@
             </div>
 
             <div class="sfc-day-slots-grid">
-                ${renderMealSlot('Завтрак', meals.breakfast)}
-                ${renderMealSlot('Обед', meals.lunch)}
-                ${renderMealSlot('Ужин', meals.dinner)}
-                ${renderMealSlot('Перекус', meals.snack)}
+                ${renderMealSlot(state.activeDayIndex, 'Завтрак', 'breakfast', meals.breakfast)}
+                ${renderMealSlot(state.activeDayIndex, 'Обед', 'lunch', meals.lunch)}
+                ${renderMealSlot(state.activeDayIndex, 'Ужин', 'dinner', meals.dinner)}
+                ${renderMealSlot(state.activeDayIndex, 'Перекус', 'snack', meals.snack)}
             </div>
 
             <div style="margin-top:16px; background:#ffffff; border:1px solid #dadce0; border-radius:8px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:13px;">
@@ -681,13 +753,30 @@
                 if (found) openRecipeModal(found);
             });
         });
+
+        dom.dayViewContainer.querySelectorAll('.btn-swap-slot').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dayIdx = parseInt(btn.dataset.day, 10);
+                const slotKey = btn.dataset.slot;
+                const mealType = btn.dataset.type;
+                openSwapModal(dayIdx, slotKey, mealType);
+            });
+        });
     }
 
-    function renderMealSlot(label, meal) {
+    function renderMealSlot(dayIndex, label, slotKey, meal) {
         if (!meal) return '';
+        const isFromFridge = meal.can_cook_from_fridge !== undefined ? meal.can_cook_from_fridge : meal.can_cook_now;
+        const statusHtml = isFromFridge
+            ? '<span class="sfc-slot-status sfc-slot-status-ready"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Из холодильника</span>'
+            : `<span class="sfc-slot-status sfc-slot-status-shop" title="${escapeHtml((meal.missing_items || []).join(', '))}"><span class="material-symbols-outlined" style="font-size:13px;">shopping_basket</span> + Докупить: ${(meal.missing_items || []).slice(0, 1).join(', ')}</span>`;
+
         return `
             <div class="sfc-slot-card">
-                <span class="sfc-slot-tag">${label}</span>
+                <div class="sfc-slot-head">
+                    <span class="sfc-slot-tag">${label}</span>
+                    ${statusHtml}
+                </div>
                 <div class="sfc-slot-img">
                     <img src="${meal.image}" alt="${escapeHtml(meal.title)}" />
                 </div>
@@ -695,11 +784,154 @@
                 <div class="sfc-slot-meta">
                     <span>${meal.time_mins} мин</span> • <span>${meal.calories} ккал</span>
                 </div>
-                <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-sm btn-open-slot-recipe" data-recipe-id="${meal.id}" style="margin-top:auto;">
-                    Посмотреть
-                </button>
+                <div class="sfc-slot-actions">
+                    <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-sm btn-open-slot-recipe" data-recipe-id="${meal.id}">
+                        Рецепт
+                    </button>
+                    <button type="button" class="sfc-btn-m3 sfc-btn-tonal sfc-btn-sm btn-swap-slot" data-day="${dayIndex}" data-slot="${slotKey}" data-type="${label}">
+                        Заменить
+                    </button>
+                </div>
             </div>
         `;
+    }
+
+    // Modal: Swap Meal Alternative
+    function openSwapModal(dayIndex, slotKey, mealType) {
+        state.currentSwapSlot = { dayIndex, slotKey, mealType };
+        dom.swapTitle.textContent = `Замена блюда: ${mealType} (${state.weeklyPlan[dayIndex].day_name})`;
+        dom.swapSubtitle.textContent = 'Выберите блюдо только из продуктов холодильника или с покупкой недостающего';
+        dom.swapList.innerHTML = '';
+
+        let candidates = (state.recipesByType && state.recipesByType[mealType]) ? state.recipesByType[mealType] : [];
+        if (!candidates || candidates.length === 0) {
+            candidates = state.recipes.all.filter(r => (r.meal_type || '').toLowerCase() === mealType.toLowerCase());
+        }
+        if (candidates.length === 0) {
+            candidates = state.recipes.all;
+        }
+
+        const seen = new Set();
+        const uniqueCandidates = [];
+        candidates.forEach(c => {
+            if (!seen.has(c.id)) {
+                seen.add(c.id);
+                uniqueCandidates.push(c);
+            }
+        });
+
+        uniqueCandidates.forEach(cand => {
+            const isReady = cand.can_cook_now;
+            const tag = isReady
+                ? '<span class="sfc-slot-status sfc-slot-status-ready"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Только из холодильника</span>'
+                : `<span class="sfc-slot-status sfc-slot-status-shop"><span class="material-symbols-outlined" style="font-size:13px;">shopping_basket</span> + Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
+
+            const item = document.createElement('div');
+            item.className = 'sfc-swap-item';
+            item.innerHTML = `
+                <div class="sfc-swap-item-info">
+                    <div class="sfc-swap-item-title">${escapeHtml(cand.title)}</div>
+                    <div class="sfc-swap-item-meta">
+                        ${tag}
+                        <span>${cand.time_mins} мин</span>
+                        <span>${cand.calories} ккал</span>
+                    </div>
+                </div>
+                <button type="button" class="sfc-btn-m3 sfc-btn-primary sfc-btn-sm btn-choose-swap">
+                    Выбрать
+                </button>
+            `;
+
+            item.querySelector('.btn-choose-swap').addEventListener('click', () => {
+                applySwapMeal(cand);
+            });
+
+            dom.swapList.appendChild(item);
+        });
+
+        dom.swapModal.style.display = 'flex';
+    }
+
+    function applySwapMeal(newRecipe) {
+        if (!state.currentSwapSlot) return;
+        const { dayIndex, slotKey } = state.currentSwapSlot;
+
+        const availableRoots = {};
+        state.products.forEach(p => { availableRoots[p.clean_key] = true; });
+
+        const missing = [];
+        (newRecipe.ingredients || []).forEach(ing => {
+            if (!availableRoots[ing.root]) {
+                missing.push(ing.name);
+            }
+        });
+
+        const updatedMeal = Object.assign({}, newRecipe, {
+            missing_items: missing,
+            can_cook_from_fridge: missing.length === 0
+        });
+
+        state.weeklyPlan[dayIndex].meals[slotKey] = updatedMeal;
+
+        // Recalculate daily nutrition
+        const meals = state.weeklyPlan[dayIndex].meals;
+        let cals = 0, p = 0, f = 0, c = 0;
+        ['breakfast', 'lunch', 'dinner', 'snack'].forEach(k => {
+            if (meals[k]) {
+                cals += meals[k].calories || 0;
+                p += meals[k].protein || 0;
+                f += meals[k].fat || 0;
+                c += meals[k].carbs || 0;
+            }
+        });
+        state.weeklyPlan[dayIndex].nutrition = { calories: cals, protein: p, fat: f, carbs: c };
+
+        // Recalculate entire shopping list across all 7 days
+        recalculateShoppingList();
+
+        dom.swapModal.style.display = 'none';
+        renderWeeklyPlan();
+        renderShoppingList();
+    }
+
+    function recalculateShoppingList() {
+        const availableRoots = {};
+        state.products.forEach(p => { availableRoots[p.clean_key] = true; });
+
+        const needed = {};
+        state.weeklyPlan.forEach(day => {
+            ['breakfast', 'lunch', 'dinner', 'snack'].forEach(slotKey => {
+                const meal = day.meals[slotKey];
+                if (meal && meal.ingredients) {
+                    meal.ingredients.forEach(ing => {
+                        const root = ing.root;
+                        if (!availableRoots[root]) {
+                            if (!needed[root]) {
+                                needed[root] = {
+                                    name: ing.name,
+                                    root: root,
+                                    category: ing.category || 'Бакалея и продукты',
+                                    amount: ing.amount || '1 шт',
+                                    count: 1
+                                };
+                            } else {
+                                needed[root].count++;
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        state.shoppingList = Object.values(needed);
+        const grouped = {};
+        state.shoppingList.forEach(item => {
+            const cat = item.category || 'Бакалея и продукты';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(item);
+        });
+        state.groupedShopping = grouped;
+        dom.badgeShopping.textContent = state.shoppingList.length;
     }
 
     // Save Plan to WP
@@ -723,7 +955,7 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('✓ ' + data.message);
+                alert('План успешно сохранен в WordPress!');
             } else {
                 alert('Не удалось сохранить план.');
             }
@@ -968,53 +1200,85 @@
         });
     }
 
+    // Geolocation with reverse geocoding to update city name
     function requestUserGeolocation() {
         if (!navigator.geolocation) {
             alert('Геолокация не поддерживается вашим браузером.');
             return;
         }
 
-        dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Поиск...</span>';
+        dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Определение...</span>';
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                state.userLocation.lat = pos.coords.latitude;
-                state.userLocation.lon = pos.coords.longitude;
-                dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                state.userLocation.lat = lat;
+                state.userLocation.lon = lon;
 
-                if (state.map) {
-                    state.map.setView([state.userLocation.lat, state.userLocation.lon], 15);
-                }
-                fetchStoresAndRecommendations();
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`)
+                    .then(r => r.json())
+                    .then(geoData => {
+                        let city = '';
+                        if (geoData && geoData.address) {
+                            city = geoData.address.city ||
+                                   geoData.address.town ||
+                                   geoData.address.village ||
+                                   geoData.address.municipality ||
+                                   geoData.address.county ||
+                                   geoData.address.suburb ||
+                                   '';
+                        }
+                        if (!city && geoData && geoData.display_name) {
+                            city = geoData.display_name.split(',')[0];
+                        }
+                        if (city && dom.searchAddressInput) {
+                            dom.searchAddressInput.value = city;
+                        }
+                    })
+                    .catch(e => console.warn('Reverse geocode error:', e))
+                    .finally(() => {
+                        dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                        if (state.map) {
+                            state.map.setView([state.userLocation.lat, state.userLocation.lon], 15);
+                        }
+                        fetchStoresAndRecommendations();
+                    });
             },
             (err) => {
                 console.warn('Geolocation denied or failed:', err);
                 dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
-                alert('Не удалось определить GPS координаты. Введите город в строке поиска.');
+                alert('Не удалось определить GPS координаты. Пожалуйста, введите название вашего города в строке поиска.');
             },
             { timeout: 10000, enableHighAccuracy: true }
         );
     }
 
+    // Geocoding city or street address input
     function searchCityAddress() {
         const query = dom.searchAddressInput.value.trim();
         if (!query) return;
 
         dom.btnSearchCity.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span>';
 
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`)
             .then(r => r.json())
             .then(data => {
                 if (data && data.length > 0) {
                     state.userLocation.lat = parseFloat(data[0].lat);
                     state.userLocation.lon = parseFloat(data[0].lon);
 
+                    const detected = data[0].address?.city || data[0].address?.town || data[0].address?.village || data[0].display_name.split(',')[0];
+                    if (detected) {
+                        dom.searchAddressInput.value = detected;
+                    }
+
                     if (state.map) {
                         state.map.setView([state.userLocation.lat, state.userLocation.lon], 15);
                     }
                     fetchStoresAndRecommendations();
                 } else {
-                    alert('Адрес не найден.');
+                    alert('Город или адрес не найден. Попробуйте ввести иначе.');
                 }
             })
             .catch(e => {

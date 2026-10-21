@@ -17,6 +17,7 @@ define( 'SFC_URL', plugin_dir_url( __FILE__ ) );
 
 // Require classes
 require_once SFC_PATH . 'includes/class-post-types.php';
+require_once SFC_PATH . 'includes/class-image-handler.php';
 require_once SFC_PATH . 'includes/class-ai-engine.php';
 require_once SFC_PATH . 'includes/class-store-locator.php';
 require_once SFC_PATH . 'includes/class-api-controller.php';
@@ -33,10 +34,10 @@ function sfc_init_plugin() {
 // Register frontend assets
 add_action( 'wp_enqueue_scripts', 'sfc_enqueue_assets' );
 function sfc_enqueue_assets() {
-    // Google Fonts: Inter & Roboto
-    wp_enqueue_style( 'google-font-inter', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap', [], null );
+    // Fonts: Lora (titles & editorial), Montserrat (UI, buttons, badges), Roboto (body text)
+    wp_enqueue_style( 'sfc-google-fonts', 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap', [], null );
 
-    // Google Material Symbols Outlined
+    // Google Material Symbols Outlined (clean vector UI glyphs)
     wp_enqueue_style( 'google-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0', [], null );
 
     // Leaflet CSS and JS for interactive store map
