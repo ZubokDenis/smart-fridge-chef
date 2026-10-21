@@ -1,8 +1,4 @@
 <?php
-/**
- * Smart Fridge Chef - Clean Standard UI
- * Typography: Lora (Headings), Montserrat (UI, Buttons, Navigation), Roboto (Body, Text)
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -11,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <div id="smart-fridge-app" class="sfc-app-root">
 
-    <!-- Top Navigation Bar (Clean Editorial Header) -->
+    
     <header class="sfc-topbar">
         <div class="sfc-topbar-inner">
             <div class="sfc-topbar-left">
@@ -22,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
 
             <div class="sfc-topbar-right">
-                <!-- AI Engine Indicator -->
+                
                 <div class="sfc-ai-status-pill" id="sfc-ai-status-badge" title="Активный движок ИИ">
                     <span class="sfc-ai-dot"></span>
                     <span id="sfc-ai-status-text">ИИ: Подключение...</span>
@@ -41,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
         </div>
 
-        <!-- Clean Navigation Tabs -->
+        
         <nav class="sfc-nav-tabs" id="sfc-main-tabs" role="tablist">
             <button class="sfc-nav-item active" data-tab="tab-fridge" role="tab">
                 <span>1. Холодильник</span>
@@ -64,21 +60,21 @@ if ( ! defined( 'ABSPATH' ) ) {
         </nav>
     </header>
 
-    <!-- Main Container -->
+    
     <main class="sfc-main-content">
 
-        <!-- ================= TAB 1: FRIDGE INPUT & INVENTORY ================= -->
+        
         <section id="tab-fridge" class="sfc-view active">
             <div class="sfc-split-layout">
 
-                <!-- Left Column: Input Form -->
+                
                 <div class="sfc-panel">
                     <div class="sfc-panel-header">
                         <h2>Ввод продуктов</h2>
                         <p class="sfc-subtext">Загрузите фотографию полок холодильника или напишите список текстом</p>
                     </div>
 
-                    <!-- Clean Switcher -->
+                    
                     <div class="sfc-segmented-control">
                         <button type="button" class="sfc-segment active" id="btn-mode-photo">
                             <span class="material-symbols-outlined">photo_camera</span>
@@ -90,7 +86,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </button>
                     </div>
 
-                    <!-- Photo Upload Dropzone -->
+                    
                     <div id="sfc-photo-area" class="sfc-upload-container">
                         <input type="file" id="sfc-file-input" accept="image/*" class="sfc-hidden-input" />
                         <div class="sfc-dropzone" id="sfc-dropzone">
@@ -113,7 +109,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </div>
                         </div>
 
-                        <!-- Clean Image Preview -->
+                        
                         <div id="sfc-image-preview-wrapper" class="sfc-preview-box" style="display: none;">
                             <div class="sfc-preview-img-container">
                                 <img id="sfc-image-preview" src="" alt="Фотография холодильника" />
@@ -134,7 +130,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </div>
                     </div>
 
-                    <!-- Text Input Box -->
+                    
                     <div id="sfc-text-area" class="sfc-text-container" style="display: none;">
                         <div class="sfc-textarea-wrapper">
                             <textarea id="sfc-text-products" rows="4" class="sfc-textarea-m3" placeholder="Например: 4 яйца, молоко 1 л, сыр 200г, куриное филе 500г, 2 помидора, макароны, картофель..."></textarea>
@@ -147,7 +143,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </div>
                     </div>
 
-                    <!-- Clean Quick Presets -->
+                    
                     <div class="sfc-preset-section">
                         <span class="sfc-preset-title">Готовые примеры продуктов:</span>
                         <div class="sfc-preset-buttons">
@@ -159,7 +155,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </div>
                 </div>
 
-                <!-- Right Column: Products Table -->
+                
                 <div class="sfc-panel">
                     <div class="sfc-panel-header sfc-flex-between">
                         <div>
@@ -172,14 +168,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </button>
                     </div>
 
-                    <!-- Empty State -->
+                    
                     <div id="sfc-products-empty" class="sfc-empty-placeholder">
                         <span class="material-symbols-outlined sfc-empty-icon">kitchen</span>
                         <h3>Холодильник пуст</h3>
                         <p>Загрузите фотографию или введите продукты списком, чтобы сформировать меню.</p>
                     </div>
 
-                    <!-- Product Table -->
+                    
                     <div id="sfc-products-list-wrapper" style="display: none;">
                         <div class="sfc-table-container">
                             <table class="sfc-data-table" id="sfc-products-table">
@@ -193,12 +189,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                                     </tr>
                                 </thead>
                                 <tbody id="sfc-products-tbody">
-                                    <!-- Populated by JS -->
+                                    
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Bottom Action -->
+                        
                         <div class="sfc-bottom-cta">
                             <div class="sfc-cta-info">
                                 <strong>Список готов</strong>
@@ -214,7 +210,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
         </section>
 
-        <!-- ================= TAB 2: RECIPES ================= -->
+        
         <section id="tab-recipes" class="sfc-view">
             <div class="sfc-view-header">
                 <div>
@@ -228,13 +224,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
 
-            <!-- Recipes Grid -->
+            
             <div class="sfc-recipe-grid" id="sfc-recipes-container">
-                <!-- Rendered dynamically -->
+                
             </div>
         </section>
 
-        <!-- ================= TAB 3: 7-DAY MEAL PLAN ================= -->
+        
         <section id="tab-plan" class="sfc-view">
             <div class="sfc-view-header sfc-flex-between">
                 <div>
@@ -253,18 +249,18 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
 
-            <!-- Day Selector Tabs -->
+            
             <div class="sfc-calendar-strip" id="sfc-days-nav">
-                <!-- Day buttons populated by JS -->
+                
             </div>
 
-            <!-- Day View Container -->
+            
             <div id="sfc-day-view-container">
-                <!-- Rendered by JS -->
+                
             </div>
         </section>
 
-        <!-- ================= TAB 4: SHOPPING LIST ================= -->
+        
         <section id="tab-shopping" class="sfc-view">
             <div class="sfc-view-header sfc-flex-between">
                 <div>
@@ -278,7 +274,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
 
             <div class="sfc-shopping-layout">
-                <!-- Left: Shopping Checklist -->
+                
                 <div class="sfc-panel sfc-checklist-panel">
                     <div class="sfc-checklist-toolbar">
                         <span>Осталось купить: <strong id="sfc-shopping-remaining-count">0</strong></span>
@@ -287,11 +283,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </button>
                     </div>
                     <div id="sfc-grouped-shopping-container">
-                        <!-- Populated by JS -->
+                        
                     </div>
                 </div>
 
-                <!-- Right: Assistant Sidebar -->
+                
                 <div class="sfc-panel sfc-sidebar-panel">
                     <div class="sfc-sidebar-card">
                         <div class="sfc-sidebar-card-title">
@@ -318,7 +314,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
         </section>
 
-        <!-- ================= TAB 5: STORES & MAP ================= -->
+        
         <section id="tab-stores" class="sfc-view">
             <div class="sfc-view-header">
                 <div>
@@ -327,7 +323,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
 
-            <!-- Permission / Location Request Banner (shown when location is not yet detected) -->
+            
             <div id="sfc-location-prompt" class="sfc-location-banner" style="display: none;">
                 <div class="sfc-location-banner-icon">
                     <span class="material-symbols-outlined">near_me</span>
@@ -342,7 +338,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </button>
             </div>
 
-            <!-- Recommendation Place Card -->
+            
             <div id="sfc-recommendation-hero" class="sfc-rec-card" style="display: none;">
                 <div class="sfc-rec-card-header">
                     <div class="sfc-rec-badge">
@@ -366,7 +362,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </div>
 
                         <div class="sfc-rec-tips-box" id="sfc-rec-tips">
-                            <!-- Populated by JS -->
+                            
                         </div>
                     </div>
 
@@ -383,9 +379,9 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
 
-            <!-- Maps Layout -->
+            
             <div class="sfc-maps-layout">
-                <!-- Map Container -->
+                
                 <div class="sfc-panel sfc-map-wrapper">
                     <div class="sfc-map-searchbar">
                         <div class="sfc-search-input-box">
@@ -403,14 +399,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div id="sfc-map" class="sfc-leaflet-map"></div>
                 </div>
 
-                <!-- Stores List -->
+                
                 <div class="sfc-panel sfc-places-wrapper">
                     <div class="sfc-panel-header">
                         <h3>Магазины рядом</h3>
                         <p class="sfc-subtext" id="sfc-stores-subtitle">Нажмите на магазин для просмотра на карте</p>
                     </div>
                     <div class="sfc-places-list" id="sfc-stores-list">
-                        <!-- Populated by JS -->
+                        
                     </div>
                 </div>
             </div>
@@ -418,19 +414,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     </main>
 
-    <!-- Modal: Recipe Details -->
+    
     <div id="sfc-recipe-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet">
             <button type="button" class="sfc-modal-close" id="sfc-modal-close-btn">
                 <span class="material-symbols-outlined">close</span>
             </button>
             <div id="sfc-modal-content">
-                <!-- Populated dynamically -->
+                
             </div>
         </div>
     </div>
 
-    <!-- Modal: Swap Meal Alternative -->
+    
     <div id="sfc-swap-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet">
             <button type="button" class="sfc-modal-close" id="sfc-swap-modal-close">
@@ -441,12 +437,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p class="sfc-subtext" id="sfc-swap-modal-subtitle">Выберите подходящее блюдо из продуктов в наличии или с докупкой</p>
             </div>
             <div id="sfc-swap-list" class="sfc-swap-options-list">
-                <!-- Populated dynamically by JS -->
+                
             </div>
         </div>
     </div>
 
-    <!-- Modal: Manual Add Product -->
+    
     <div id="sfc-add-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet sfc-modal-compact">
             <button type="button" class="sfc-modal-close" id="sfc-add-modal-close">

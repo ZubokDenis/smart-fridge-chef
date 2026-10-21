@@ -1,9 +1,4 @@
 <?php
-/**
- * Store Locator & Smart Recommendation Engine
- * 100% Real Map Data via OpenStreetMap Nominatim
- * ZERO Synthetic / Hallucinated Stores
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -11,9 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class SFC_Store_Locator {
 
-    /**
-     * Find stores near coordinates and recommend where to go
-     */
     public static function find_and_recommend_stores( $lat, $lon, $shopping_list = [] ) {
         $lat = floatval( $lat );
         $lon = floatval( $lon );
@@ -28,34 +20,29 @@ class SFC_Store_Locator {
             ];
         }
 
-        // Cache key based on rounded coordinates (~100m radius)
         $cache_key = 'sfc_real_stores_' . md5( round( $lat, 3 ) . '_' . round( $lon, 3 ) );
         $cached_stores = get_transient( $cache_key );
 
         if ( false !== $cached_stores && is_array( $cached_stores ) ) {
             $stores = $cached_stores;
         } else {
-            // Live OpenStreetMap Nominatim Viewbox Search
             $stores = self::query_nominatim_real_stores( $lat, $lon );
             if ( ! empty( $stores ) ) {
                 set_transient( $cache_key, $stores, 2 * HOUR_IN_SECONDS );
             }
         }
 
-        // Calculate accurate Haversine distances & walking times
         foreach ( $stores as &$store ) {
             $dist_meters = self::haversine_distance( $lat, $lon, $store['lat'], $store['lon'] );
             $store['distance_m'] = round( $dist_meters );
-            $store['walking_time_mins'] = max( 1, round( $dist_meters / 80 ) ); // ~4.8 km/h = 80m/min
+            $store['walking_time_mins'] = max( 1, round( $dist_meters / 80 ) );
         }
         unset( $store );
 
-        // Sort ascending by distance
         usort( $stores, function( $a, $b ) {
             return $a['distance_m'] <=> $b['distance_m'];
         });
 
-        // If no stores were found on the map, return empty list with honest message — DO NOT FABRICATE
         if ( empty( $stores ) ) {
             return [
                 'user_location'  => [ 'lat' => $lat, 'lon' => $lon ],
@@ -65,13 +52,11 @@ class SFC_Store_Locator {
             ];
         }
 
-        // 1. Try AI-powered recommendation (Ollama Cloud / Claude / Gemini)
         $recommendation = SFC_AI_Engine::analyze_stores_with_ai( $stores, $shopping_list, [ 'lat' => $lat, 'lon' => $lon ] );
 
-        // 2. Fallback to smart universal heuristic if external AI is not active or returned null
         if ( empty( $recommendation ) ) {
             $recommendation = self::calculate_recommendation( $stores, $shopping_list );
-            $recommendation['ai_model'] = 'Встроенный экспертный интеллект';
+            $recommendation['ai_model'] = 'Экспертный кулинарный алгоритм';
         }
 
         return [
@@ -81,11 +66,8 @@ class SFC_Store_Locator {
         ];
     }
 
-    /**
-     * Haversine distance in meters
-     */
     public static function haversine_distance( $lat1, $lon1, $lat2, $lon2 ) {
-        $earth_radius = 6371000; // meters
+        $earth_radius = 6371000;
 
         $dLat = deg2rad( $lat2 - $lat1 );
         $dLon = deg2rad( $lon2 - $lon1 );
@@ -98,11 +80,8 @@ class SFC_Store_Locator {
         return $earth_radius * $c;
     }
 
-    /**
-     * Query OpenStreetMap Nominatim for real stores within a bounded viewbox
-     */
     public static function query_nominatim_real_stores( $lat, $lon ) {
-        $dlat = 0.035; // ~3.8 km
+        $dlat = 0.035;
         $dlon = 0.040 / max( 0.2, cos( deg2rad( $lat ) ) );
 
         $left   = $lon - $dlon;
@@ -113,14 +92,12 @@ class SFC_Store_Locator {
 
         $raw_items = [];
 
-        // 1. Search supermarkets
         $url_supermarket = 'https://nominatim.openstreetmap.org/search?format=json&q=supermarket&viewbox=' . $viewbox . '&bounded=1&limit=15&addressdetails=1';
         $items1 = self::fetch_osm_json( $url_supermarket );
         if ( ! empty( $items1 ) && is_array( $items1 ) ) {
             $raw_items = array_merge( $raw_items, $items1 );
         }
 
-        // 2. Search grocery / food stores if fewer than 8 results found
         if ( count( $raw_items ) < 8 ) {
             $url_grocery = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode( 'продукты' ) . '&viewbox=' . $viewbox . '&bounded=1&limit=10&addressdetails=1';
             $items2 = self::fetch_osm_json( $url_grocery );
@@ -129,7 +106,6 @@ class SFC_Store_Locator {
             }
         }
 
-        // 3. Search grocery in English if still very few
         if ( count( $raw_items ) < 4 ) {
             $url_grocery_en = 'https://nominatim.openstreetmap.org/search?format=json&q=grocery&viewbox=' . $viewbox . '&bounded=1&limit=10&addressdetails=1';
             $items3 = self::fetch_osm_json( $url_grocery_en );
@@ -150,18 +126,15 @@ class SFC_Store_Locator {
             $class = $item['class'] ?? '';
             $type  = $item['type'] ?? '';
 
-            // Must be a shop or marketplace
             if ( $class === 'shop' ) {
                 if ( in_array( $type, $blacklist_types, true ) ) {
                     continue;
                 }
             } elseif ( $class === 'amenity' && $type === 'marketplace' ) {
-                // marketplace is allowed
             } else {
                 continue;
             }
 
-            // Exclude banks / pharmacies / ATMs by name if misclassified
             $raw_name_lower = mb_strtolower( $item['name'] ?? '', 'UTF-8' );
             if ( mb_strpos( $raw_name_lower, 'банк' ) !== false ||
                  mb_strpos( $raw_name_lower, 'аптек' ) !== false ||
@@ -184,7 +157,6 @@ class SFC_Store_Locator {
                 continue;
             }
 
-            // Proximity deduplication (within 35 meters)
             $is_dup = false;
             foreach ( $stores as $prev ) {
                 $dist_between = self::haversine_distance( $s_lat, $s_lon, $prev['lat'], $prev['lon'] );
@@ -197,7 +169,6 @@ class SFC_Store_Locator {
                 continue;
             }
 
-            // Determine real store name
             $name = ! empty( $item['name'] ) ? trim( $item['name'] ) : '';
             $addr_shop = $item['address']['shop'] ?? '';
             $road      = $item['address']['road'] ?? '';
@@ -213,10 +184,8 @@ class SFC_Store_Locator {
                 }
             }
 
-            // Clean up name
             $name = preg_replace( '/^[\s,.-]+|[\s,.-]+$/u', '', $name );
 
-            // Real address from components
             $address_parts = [];
             if ( ! empty( $road ) ) {
                 $address_parts[] = $road;
@@ -234,7 +203,6 @@ class SFC_Store_Locator {
             }
             $address = ! empty( $address_parts ) ? implode( ', ', $address_parts ) : 'Адрес на карте';
 
-            // Identify chain properties & branding
             $chain_info = self::identify_chain( $name, $type );
 
             $stores[] = [
@@ -255,14 +223,11 @@ class SFC_Store_Locator {
         return $stores;
     }
 
-    /**
-     * HTTP fetch with custom User-Agent and timeout
-     */
     private static function fetch_osm_json( $url ) {
         $response = wp_remote_get( $url, [
             'timeout'   => 7,
             'headers'   => [
-                'User-Agent'      => 'SmartFridgeChefApp/1.0 (denis.fridgechef@gmail.com; WordPress)',
+                'User-Agent'      => 'SmartFridgeChef/1.0 (WordPress)',
                 'Accept-Language' => 'ru,en;q=0.8'
             ],
             'sslverify' => false,
@@ -283,14 +248,9 @@ class SFC_Store_Locator {
         return is_array( $data ) ? $data : [];
     }
 
-    /**
-     * Versatile Store / Supermarket Brand Matcher
-     * Supports regional chains (BY, KZ, GE, RU, EU) & universal defaults
-     */
     public static function identify_chain( $name, $type = 'supermarket' ) {
         $n = mb_strtolower( $name, 'UTF-8' );
 
-        // --- Belarus ---
         if ( mb_strpos( $n, 'евроопт' ) !== false || mb_strpos( $n, 'evroopt' ) !== false || mb_strpos( $n, 'грошык' ) !== false || mb_strpos( $n, 'хит' ) !== false ) {
             return [
                 'chain'    => 'Евроопт',
@@ -340,7 +300,6 @@ class SFC_Store_Locator {
             ];
         }
 
-        // --- Kazakhstan ---
         if ( mb_strpos( $n, 'magnum' ) !== false || mb_strpos( $n, 'магнум' ) !== false ) {
             return [
                 'chain'    => 'Magnum',
@@ -366,7 +325,6 @@ class SFC_Store_Locator {
             ];
         }
 
-        // --- Georgia ---
         if ( mb_strpos( $n, 'fresco' ) !== false || mb_strpos( $n, 'ფრესკო' ) !== false ) {
             return [
                 'chain'    => 'Fresco',
@@ -384,7 +342,6 @@ class SFC_Store_Locator {
             ];
         }
 
-        // --- Russia ---
         if ( mb_strpos( $n, 'вкусвилл' ) !== false || mb_strpos( $n, 'vkusvill' ) !== false ) {
             return [
                 'chain'    => 'ВкусВилл',
@@ -434,7 +391,6 @@ class SFC_Store_Locator {
             ];
         }
 
-        // --- International ---
         if ( mb_strpos( $n, 'carrefour' ) !== false ) {
             return [
                 'chain'    => 'Carrefour',
@@ -468,11 +424,10 @@ class SFC_Store_Locator {
             ];
         }
 
-        // --- Universal Default for Any Real Local Store ---
         $is_supermarket = ( $type === 'supermarket' || mb_strpos( $n, 'маркет' ) !== false || mb_strpos( $n, 'универсам' ) !== false );
         return [
             'chain'    => $name,
-            'color'    => '#475569', // clean slate neutral
+            'color'    => '#475569',
             'icon'     => $is_supermarket ? 'local_mall' : 'storefront',
             'features' => $is_supermarket
                 ? [ 'Широкий ассортимент', 'Все категории продуктов', 'Свежие овощи и бакалея' ]
@@ -480,15 +435,11 @@ class SFC_Store_Locator {
         ];
     }
 
-    /**
-     * Universal Smart Recommendation: "Куда лучше пойти?"
-     */
     public static function calculate_recommendation( $stores, $shopping_list ) {
         if ( empty( $stores ) ) {
             return null;
         }
 
-        // Count missing items by category
         $cat_counts = [];
         $total_items = count( $shopping_list );
 
@@ -507,10 +458,8 @@ class SFC_Store_Locator {
 
         foreach ( $stores as $store ) {
             $score = 100;
-            // Proximity weight: minus 1 point per 25 meters
             $score -= ( $store['distance_m'] / 25 );
 
-            // Bonus for supermarket when shopping list is medium/large
             if ( $store['category'] === 'Супермаркет' && $total_items >= 4 ) {
                 $score += 20;
             }
@@ -525,8 +474,7 @@ class SFC_Store_Locator {
             $best_store = $stores[0];
         }
 
-        // Dynamic tailored advice
-        $reason = "Оптимальный выбор для вашего списка покупок: «{$best_store['name']}». Расположен всего в {$best_store['distance_m']} м от вас (~{$best_store['walking_time_mins']} мин пешком).";
+        $reason = "Оптимальный выбор для вашего списка покупок: «{$best_store['name']}». Расположен в {$best_store['distance_m']} м от вас (~{$best_store['walking_time_mins']} мин пешком).";
 
         if ( ( $fresh_produce_count + $dairy_count + $meat_count ) > $staples_count ) {
             $reason .= " В ассортименте этого супермаркета легко найти все свежие ингредиенты (молочные продукты, овощи, мясо) для блюд недели.";
@@ -548,7 +496,6 @@ class SFC_Store_Locator {
 
         $tips[] = 'Отмечайте купленные товары галочками в списке покупок приложения';
 
-        // Direct walking route URLs
         $yandex_route_url = sprintf(
             'https://yandex.ru/maps/?rtext=~%f,%f&rtt=pd',
             $best_store['lat'],

@@ -1,19 +1,7 @@
-/**
- * Smart Fridge Chef - Application Logic
- * Clean Standard Architecture (Google Material & Instagram Web)
- * 
- * Key Highlights:
- * - NO default Moscow: strictly gets user's location via geolocation or explicit city input.
- * - Instant recipe & meal plan generation immediately after photo upload.
- * - Client-side Canvas WebP conversion before uploading.
- * - Clean editorial design with zero stickers / emojis.
- * - True meal variability: "Из холодильника" vs "С докупкой" + instant meal swapping.
- */
 
 (function () {
     'use strict';
 
-    // Application State
     const state = {
         products: [],
         recipes: { all: [], ready_now: [], need_more: [] },
@@ -32,10 +20,9 @@
         mapMarkers: [],
         userMarker: null,
         aiStatus: null,
-        currentSwapSlot: null, // { dayIndex, slotKey, mealType }
+        currentSwapSlot: null,
     };
 
-    // DOM Elements Cache
     let dom = {};
 
     function initDOM() {
@@ -47,7 +34,6 @@
             badgeShopping: document.getElementById('sfc-badge-shopping-count'),
             aiStatusText: document.getElementById('sfc-ai-status-text'),
 
-            // Tab 1: Fridge
             btnModePhoto: document.getElementById('btn-mode-photo'),
             btnModeText: document.getElementById('btn-mode-text'),
             photoArea: document.getElementById('sfc-photo-area'),
@@ -71,16 +57,13 @@
             btnDemo: document.getElementById('sfc-btn-demo'),
             btnReset: document.getElementById('sfc-btn-reset'),
 
-            // Tab 2: Recipes
             recipesContainer: document.getElementById('sfc-recipes-container'),
             recipeFilters: document.querySelectorAll('.sfc-filter-btn'),
 
-            // Tab 3: Meal Plan
             daysNav: document.getElementById('sfc-days-nav'),
             dayViewContainer: document.getElementById('sfc-day-view-container'),
             btnSavePlan: document.getElementById('sfc-btn-save-plan'),
 
-            // Tab 4: Shopping
             groupedShoppingContainer: document.getElementById('sfc-grouped-shopping-container'),
             shoppingRemainingCount: document.getElementById('sfc-shopping-remaining-count'),
             btnCheckAll: document.getElementById('sfc-btn-check-all'),
@@ -88,7 +71,6 @@
             quickStoreTeaser: document.getElementById('sfc-quick-store-teaser'),
             btnOpenMapTeaser: document.getElementById('sfc-btn-open-map-teaser'),
 
-            // Tab 5: Stores & Geolocation
             locationPrompt: document.getElementById('sfc-location-prompt'),
             btnPromptGeolocate: document.getElementById('sfc-btn-prompt-geolocate'),
             recHero: document.getElementById('sfc-recommendation-hero'),
@@ -108,7 +90,6 @@
             searchAddressInput: document.getElementById('sfc-search-address'),
             btnSearchCity: document.getElementById('sfc-btn-search-city'),
 
-            // Modals
             recipeModal: document.getElementById('sfc-recipe-modal'),
             modalContent: document.getElementById('sfc-modal-content'),
             modalCloseBtn: document.getElementById('sfc-modal-close-btn'),
@@ -125,20 +106,18 @@
         };
     }
 
-    // Initialize Application
     document.addEventListener('DOMContentLoaded', function () {
         initDOM();
         bindEvents();
         loadAIStatus();
 
-        // Cleanse and load saved fridge products
         const saved = localStorage.getItem('sfc_products');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
                     parsed.forEach(p => {
-                        // Purge any stored emoji icons from older sessions
+
                         if (p.icon && /[\uD800-\uDFFF\u2600-\u27BF]/.test(p.icon)) {
                             p.icon = 'inventory_2';
                         }
@@ -149,11 +128,9 @@
             } catch (e) {}
         }
 
-        // On launch: Automatically ask browser for user's REAL location
         requestUserGeolocation(true);
     });
 
-    // Load Live AI status from backend
     function loadAIStatus() {
         if (!dom.aiStatusText) return;
         dom.aiStatusText.textContent = 'ИИ: ' + (sfcConfig.aiLabel || 'Подключение...');
@@ -174,14 +151,12 @@
             });
     }
 
-    // Event Bindings
     function bindEvents() {
-        // Tab switching
+
         dom.tabs.forEach(tab => {
             tab.addEventListener('click', () => switchTab(tab.dataset.tab));
         });
 
-        // Mode switching (Photo vs Text)
         dom.btnModePhoto.addEventListener('click', () => {
             dom.btnModePhoto.classList.add('active');
             dom.btnModeText.classList.remove('active');
@@ -196,7 +171,6 @@
             dom.textArea.style.display = 'block';
         });
 
-        // File upload & Dropzone
         dom.btnChooseFile.addEventListener('click', () => dom.fileInput.click());
         dom.btnCamera.addEventListener('click', () => {
             dom.fileInput.setAttribute('capture', 'environment');
@@ -222,7 +196,6 @@
 
         dom.btnRemovePhoto.addEventListener('click', resetPhotoUpload);
 
-        // Text input parse
         dom.btnParseText.addEventListener('click', () => {
             const text = dom.textProducts.value.trim();
             if (!text) {
@@ -232,7 +205,6 @@
             sendAnalyzeRequest({ type: 'text', text: text }, false);
         });
 
-        // Presets
         dom.presetButtons.forEach(btn => {
             btn.addEventListener('click', () => loadPreset(btn.dataset.preset));
         });
@@ -240,7 +212,6 @@
         dom.btnDemo.addEventListener('click', () => loadPreset('family'));
         dom.btnReset.addEventListener('click', resetAll);
 
-        // Manual add modal
         dom.btnAddManualProduct.addEventListener('click', () => {
             dom.addModal.style.display = 'flex';
             dom.addNameInput.value = '';
@@ -258,10 +229,8 @@
             }
         });
 
-        // Cook button: transitions to recipes & meal plan
         dom.btnStartCook.addEventListener('click', generateRecipesAndPlan);
 
-        // Recipe filter buttons
         dom.recipeFilters.forEach(btn => {
             btn.addEventListener('click', () => {
                 dom.recipeFilters.forEach(b => b.classList.remove('active'));
@@ -270,7 +239,6 @@
             });
         });
 
-        // Modals close
         dom.modalCloseBtn.addEventListener('click', () => {
             dom.recipeModal.style.display = 'none';
         });
@@ -287,15 +255,12 @@
             if (e.target === dom.swapModal) dom.swapModal.style.display = 'none';
         });
 
-        // Save plan to WordPress
         dom.btnSavePlan.addEventListener('click', savePlanToWordPress);
 
-        // Shopping Actions
         dom.btnCheckAll.addEventListener('click', toggleAllShoppingCheckboxes);
         dom.btnGoToStores.addEventListener('click', () => switchTab('tab-stores'));
         dom.btnOpenMapTeaser.addEventListener('click', () => switchTab('tab-stores'));
 
-        // Geolocation & City Search
         if (dom.btnPromptGeolocate) {
             dom.btnPromptGeolocate.addEventListener('click', () => requestUserGeolocation(false));
         }
@@ -306,7 +271,6 @@
         });
     }
 
-    // Switch Tabs
     function switchTab(tabId) {
         dom.tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
         dom.views.forEach(v => v.classList.toggle('active', v.id === tabId));
@@ -321,7 +285,6 @@
         }
     }
 
-    // Process Image: Converts to WebP via HTML5 Canvas before uploading
     function handleFileSelect(e) {
         if (e.target.files && e.target.files[0]) {
             processImageFile(e.target.files[0]);
@@ -365,7 +328,6 @@
                 dom.previewWrapper.style.display = 'block';
                 dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>ИИ анализирует снимок и подбирает рецепты...</span>';
 
-                // Automatically calculate recipes immediately after photo upload!
                 sendAnalyzeRequest({
                     type: 'photo',
                     image_base64: webpDataUrl,
@@ -383,7 +345,6 @@
         dom.dropzone.style.display = 'block';
     }
 
-    // REST: Analyze Input
     function sendAnalyzeRequest(payload, autoGenerateAfter) {
         fetch(sfcConfig.restUrl + 'analyze-input', {
             method: 'POST',
@@ -403,7 +364,6 @@
                     dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined" style="color:#137333;">check_circle</span> <span>Распознано продуктов: ${data.products.length}. Подбор меню...</span>`;
                 }
 
-                // If photo was uploaded, immediately calculate recipes & meal plan
                 if (autoGenerateAfter) {
                     generateRecipesAndPlan();
                 }
@@ -417,7 +377,6 @@
         });
     }
 
-    // Render Products Table
     function renderProducts() {
         dom.badgeProducts.textContent = state.products.length;
 
@@ -503,7 +462,6 @@
         }
     }
 
-    // Presets
     function loadPreset(presetKey) {
         let text = '';
         if (presetKey === 'bachelor') {
@@ -521,7 +479,6 @@
         sendAnalyzeRequest({ type: 'text', text: text }, true);
     }
 
-    // Generate Recipes & Plan
     function generateRecipesAndPlan() {
         if (state.products.length === 0) {
             alert('Сначала добавьте продукты в холодильник!');
@@ -577,7 +534,6 @@
         });
     }
 
-    // Render Recipes
     function renderRecipesGrid(recipes) {
         dom.recipesContainer.innerHTML = '';
 
@@ -708,7 +664,6 @@
         dom.recipeModal.style.display = 'flex';
     }
 
-    // Render Weekly Plan
     function renderWeeklyPlan() {
         if (!state.weeklyPlan || state.weeklyPlan.length === 0) return;
 
@@ -808,7 +763,6 @@
         `;
     }
 
-    // Modal: Swap Meal Alternative
     function openSwapModal(dayIndex, slotKey, mealType) {
         state.currentSwapSlot = { dayIndex, slotKey, mealType };
         dom.swapTitle.textContent = `Замена блюда: ${mealType} (${state.weeklyPlan[dayIndex].day_name})`;
@@ -885,7 +839,6 @@
 
         state.weeklyPlan[dayIndex].meals[slotKey] = updatedMeal;
 
-        // Recalculate daily nutrition
         const meals = state.weeklyPlan[dayIndex].meals;
         let cals = 0, p = 0, f = 0, c = 0;
         ['breakfast', 'lunch', 'dinner', 'snack'].forEach(k => {
@@ -945,7 +898,6 @@
         dom.badgeShopping.textContent = state.shoppingList.length;
     }
 
-    // Save Plan to WP
     function savePlanToWordPress() {
         if (!state.weeklyPlan || state.weeklyPlan.length === 0) return;
 
@@ -981,7 +933,6 @@
         });
     }
 
-    // Render Shopping List
     function renderShoppingList() {
         if (!state.shoppingList || state.shoppingList.length === 0) {
             dom.groupedShoppingContainer.innerHTML = '<p class="sfc-subtext">Все необходимые продукты уже есть в наличии в холодильнике.</p>';
@@ -1041,7 +992,6 @@
         dom.shoppingRemainingCount.textContent = unchecked.length;
     }
 
-    // Show Location Prompt (never show Moscow if unknown)
     function showLocationPrompt() {
         if (dom.locationPrompt) dom.locationPrompt.style.display = 'flex';
         if (dom.recHero) dom.recHero.style.display = 'none';
@@ -1050,7 +1000,6 @@
         }
     }
 
-    // Fetch Stores & Recommendations
     function fetchStoresAndRecommendations(queryText) {
         if (!state.userLocation && !queryText) {
             showLocationPrompt();
@@ -1115,7 +1064,6 @@
         });
     }
 
-    // Render Store Recommendation Card
     function renderStoreRecommendation(rec) {
         if (!rec || !rec.store) {
             if (dom.recHero) dom.recHero.style.display = 'none';
@@ -1156,7 +1104,6 @@
         }
     }
 
-    // Render Stores List
     function renderStoresList(stores, emptyMsg) {
         dom.storesList.innerHTML = '';
         if (!stores || stores.length === 0) {
@@ -1203,7 +1150,6 @@
         });
     }
 
-    // Leaflet Map
     function initOrRefreshMap() {
         if (!dom.mapContainer) return;
 
@@ -1237,7 +1183,6 @@
 
         if (!state.userLocation) return;
 
-        // User Marker
         const userIcon = L.divIcon({
             className: 'sfc-user-pin',
             html: '<div style="background:#1a73e8; color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">person</span></div>',
@@ -1249,7 +1194,6 @@
             .addTo(state.map)
             .bindPopup('<strong>Вы находитесь здесь</strong>');
 
-        // Store Markers
         (state.stores || []).forEach(store => {
             const isRec = state.recommendation?.store?.id === store.id;
             const markerBg = isRec ? '#1a73e8' : '#5f6368';
@@ -1279,7 +1223,6 @@
         });
     }
 
-    // Geolocation: Asks browser for GPS, reverse geocodes to get REAL city
     function requestUserGeolocation(isSilentAuto) {
         if (!navigator.geolocation) {
             if (!isSilentAuto) alert('Геолокация не поддерживается вашим браузером.');
@@ -1296,7 +1239,6 @@
                 const lon = pos.coords.longitude;
                 state.userLocation = { lat: lat, lon: lon };
 
-                // Reverse geocode via Nominatim to detect real city / town
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`)
                     .then(r => r.json())
                     .then(geoData => {
@@ -1350,7 +1292,6 @@
         );
     }
 
-    // Geocoding city or street address input
     function searchCityAddress() {
         const query = dom.searchAddressInput.value.trim();
         if (!query) {
@@ -1386,7 +1327,7 @@
                     }
                     fetchStoresAndRecommendations();
                 } else {
-                    // Try server-side geocoding fallback
+
                     fetchStoresAndRecommendations(query);
                 }
             })
@@ -1399,7 +1340,6 @@
             });
     }
 
-    // Helper: Escape HTML
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)

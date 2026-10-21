@@ -1,7 +1,4 @@
 <?php
-/**
- * REST API Controller for Smart Fridge Chef
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -16,56 +13,48 @@ class SFC_API_Controller {
     }
 
     public static function register_routes() {
-        // 1. Analyze Fridge Photo or Text
         register_rest_route( self::NAMESPACE, '/analyze-input', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'handle_analyze_input' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 2. Generate Immediate Recipes
         register_rest_route( self::NAMESPACE, '/generate-recipes', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'handle_generate_recipes' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 3. Generate 7-Day Meal Plan & Grocery List
         register_rest_route( self::NAMESPACE, '/generate-weekly-plan', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'handle_generate_weekly_plan' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 4. Find Nearby Stores & Recommendation
         register_rest_route( self::NAMESPACE, '/find-stores', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'handle_find_stores' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 5. Save Meal Plan to WP
         register_rest_route( self::NAMESPACE, '/save-meal-plan', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'handle_save_meal_plan' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 6. Get Saved Meal Plans
         register_rest_route( self::NAMESPACE, '/saved-plans', [
             'methods'             => 'GET',
             'callback'            => [ __CLASS__, 'handle_get_saved_plans' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 7. Get AI Status
         register_rest_route( self::NAMESPACE, '/ai-status', [
             'methods'             => 'GET',
             'callback'            => [ __CLASS__, 'handle_get_ai_status' ],
             'permission_callback' => '__return_true',
         ]);
 
-        // 8. Test AI Connection
         register_rest_route( self::NAMESPACE, '/test-ai', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'handle_test_ai' ],
@@ -73,16 +62,13 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Handler: Analyze Fridge input (Photo or Text)
-     */
     public static function handle_analyze_input( WP_REST_Request $request ) {
         $params = $request->get_json_params();
         if ( empty( $params ) ) {
             $params = $request->get_params();
         }
 
-        $input_type = $params['type'] ?? 'text'; // 'text' or 'photo'
+        $input_type = $params['type'] ?? 'text';
         $products = [];
         $image_info = null;
 
@@ -90,10 +76,8 @@ class SFC_API_Controller {
             $image_base64 = $params['image_base64'] ?? '';
             $mime_type    = $params['mime_type'] ?? 'image/jpeg';
 
-            // Convert to WebP and create thumbnail
             $image_info = SFC_Image_Handler::process_upload( $image_base64, $mime_type );
 
-            // Strip data:image/...;base64, prefix if present for AI
             if ( preg_match( '/^data:image\/(\w+);base64,/', $image_base64, $m ) ) {
                 $mime_type = 'image/' . $m[1];
                 $image_base64 = substr( $image_base64, strpos( $image_base64, ',' ) + 1 );
@@ -113,16 +97,12 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Handler: Generate recipes from products
-     */
     public static function handle_generate_recipes( WP_REST_Request $request ) {
         $params = $request->get_json_params();
         $products = $params['products'] ?? [];
 
         $recipes = SFC_AI_Engine::match_recipes( $products );
 
-        // Group into can cook now vs need extras
         $ready_now = array_values( array_filter( $recipes, function( $r ) {
             return ! empty( $r['can_cook_now'] );
         }));
@@ -140,9 +120,6 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Handler: Generate 7-day meal plan
-     */
     public static function handle_generate_weekly_plan( WP_REST_Request $request ) {
         $params = $request->get_json_params();
         $products = $params['products'] ?? [];
@@ -159,9 +136,6 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Handler: Find stores near coordinates
-     */
     public static function handle_find_stores( WP_REST_Request $request ) {
         $params = $request->get_json_params();
         $lat           = isset( $params['lat'] ) && is_numeric( $params['lat'] ) ? floatval( $params['lat'] ) : null;
@@ -201,15 +175,12 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Geocode an address string using Nominatim
-     */
     public static function geocode_address( $query ) {
         $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . urlencode( $query ) . '&limit=1&addressdetails=1';
         $res = wp_remote_get( $url, [
             'timeout'   => 7,
             'headers'   => [
-                'User-Agent'      => 'SmartFridgeChefApp/1.0 (denis.fridgechef@gmail.com; WordPress)',
+                'User-Agent'      => 'SmartFridgeChef/1.0 (WordPress)',
                 'Accept-Language' => 'ru,en;q=0.8'
             ],
             'sslverify' => false,
@@ -234,9 +205,6 @@ class SFC_API_Controller {
         ];
     }
 
-    /**
-     * Handler: Save Meal Plan to WordPress
-     */
     public static function handle_save_meal_plan( WP_REST_Request $request ) {
         $params = $request->get_json_params();
         $title = $params['title'] ?? ( 'План питания от ' . current_time( 'd.m.Y H:i' ) );
@@ -259,13 +227,10 @@ class SFC_API_Controller {
         return rest_ensure_response([
             'success' => true,
             'post_id' => $post_id,
-            'message' => 'План питания успешно сохранен в базе данных WordPress!'
+            'message' => 'План питания успешно сохранен!'
         ]);
     }
 
-    /**
-     * Handler: Get Saved Plans
-     */
     public static function handle_get_saved_plans( WP_REST_Request $request ) {
         $posts = get_posts([
             'post_type'      => 'sfc_meal_plan',
@@ -292,15 +257,12 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Handler: Get current AI status
-     */
     public static function handle_get_ai_status( WP_REST_Request $request ) {
         $config = SFC_AI_Engine::get_ai_config();
         $provider = $config['provider'];
         $model_name = $config[$provider . '_model'] ?? '';
 
-        $label = 'Встроенный ИИ';
+        $label = 'Встроенный экспертный движок';
         if ( $provider === 'ollama_cloud' || $provider === 'ollama' ) {
             $label = 'Ollama Cloud (' . ( $config['ollama_model'] ?: 'cloud' ) . ')';
         } elseif ( $provider === 'claude' ) {
@@ -318,9 +280,6 @@ class SFC_API_Controller {
         ]);
     }
 
-    /**
-     * Handler: Test AI Connection
-     */
     public static function handle_test_ai( WP_REST_Request $request ) {
         $result = SFC_AI_Engine::test_ai_connection();
         return rest_ensure_response( $result );

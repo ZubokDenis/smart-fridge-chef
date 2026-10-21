@@ -1,8 +1,4 @@
 <?php
-/**
- * Image Handler for Smart Fridge Chef
- * Converts uploaded images to WebP and generates optimized WebP thumbnails using PHP GD.
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -10,11 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class SFC_Image_Handler {
 
-    /**
-     * Process base64 or file upload: converts to WebP and creates thumbnail
-     */
     public static function process_upload( $base64_data, $mime_type = 'image/jpeg' ) {
-        // Strip data:image/...;base64, prefix if present
         if ( preg_match( '/^data:image\/(\w+);base64,/', $base64_data, $m ) ) {
             $mime_type = 'image/' . $m[1];
             $base64_data = substr( $base64_data, strpos( $base64_data, ',' ) + 1 );
@@ -33,7 +25,6 @@ class SFC_Image_Handler {
             wp_mkdir_p( $target_dir );
         }
 
-        // Create GD image from binary string
         $src_img = @imagecreatefromstring( $raw_bytes );
         if ( ! $src_img ) {
             return null;
@@ -49,7 +40,6 @@ class SFC_Image_Handler {
         $full_path  = $target_dir . '/' . $full_filename;
         $thumb_path = $target_dir . '/' . $thumb_filename;
 
-        // 1. Generate optimized full-size WebP (max 1600px width/height)
         $max_dim = 1600;
         if ( $orig_w > $max_dim || $orig_h > $max_dim ) {
             $ratio = min( $max_dim / $orig_w, $max_dim / $orig_h );
@@ -66,7 +56,6 @@ class SFC_Image_Handler {
             imagewebp( $src_img, $full_path, 82 );
         }
 
-        // 2. Generate WebP Thumbnail (400x300 crop or proportional)
         $thumb_w = 400;
         $thumb_h = 300;
         $ratio = max( $thumb_w / $orig_w, $thumb_h / $orig_h );

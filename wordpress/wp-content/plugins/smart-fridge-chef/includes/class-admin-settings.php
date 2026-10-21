@@ -1,8 +1,4 @@
 <?php
-/**
- * Admin Settings for Smart Fridge Chef
- * Supports Ollama Cloud (Remote Host with Token/Key), Anthropic Claude, Google Gemini, and Geolocation defaults.
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -92,7 +88,6 @@ class SFC_Admin_Settings {
 
             <div style="background: #ffffff; border: 1px solid #dadce0; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
                 <form method="post" action="options.php" id="sfc-admin-settings-form" autocomplete="off">
-                    <!-- Dummy inputs to absorb browser username/password autofill -->
                     <input type="text" name="fake_user" style="display:none" tabindex="-1" autocomplete="off" />
                     <input type="password" name="fake_pass" style="display:none" tabindex="-1" autocomplete="new-password" />
 
@@ -100,7 +95,6 @@ class SFC_Admin_Settings {
                     <?php do_settings_sections( 'sfc_settings_group' ); ?>
 
                     <table class="form-table" style="margin-top: 0;">
-                        <!-- AI Provider Select -->
                         <tr valign="top">
                             <th scope="row" style="width: 240px; font-weight: 600; color: #202124;">
                                 Основной провайдер ИИ
@@ -116,7 +110,6 @@ class SFC_Admin_Settings {
                             </td>
                         </tr>
 
-                        <!-- Section: Ollama Cloud Settings -->
                         <tr class="sfc-provider-row sfc-row-ollama">
                             <th scope="row" style="font-weight: 600; color: #202124;">Ollama Cloud Endpoint URL</th>
                             <td>
@@ -144,7 +137,6 @@ class SFC_Admin_Settings {
                             </td>
                         </tr>
 
-                        <!-- Section: Claude Settings -->
                         <tr class="sfc-provider-row sfc-row-claude">
                             <th scope="row" style="font-weight: 600; color: #202124;">Anthropic Claude API Key</th>
                             <td>
@@ -166,7 +158,6 @@ class SFC_Admin_Settings {
                             </td>
                         </tr>
 
-                        <!-- Section: Gemini Settings -->
                         <tr class="sfc-provider-row sfc-row-gemini">
                             <th scope="row" style="font-weight: 600; color: #202124;">Google Gemini API Key</th>
                             <td>
@@ -174,7 +165,6 @@ class SFC_Admin_Settings {
                             </td>
                         </tr>
 
-                        <!-- Location Settings -->
                         <tr><td colspan="2"><hr style="border:none; border-top: 1px solid #dadce0; margin: 12px 0;" /></td></tr>
                         <tr valign="top">
                             <th scope="row" style="font-weight: 600; color: #202124;">Город по умолчанию</th>

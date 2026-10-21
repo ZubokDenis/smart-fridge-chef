@@ -1,8 +1,4 @@
 <?php
-/**
- * AI & Culinary Engine for Smart Fridge Chef
- * Multi-Provider: Ollama Cloud / Remote, Anthropic Claude, Google Gemini, and Smart Built-in Fallback.
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -10,9 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class SFC_AI_Engine {
 
-    /**
-     * Get active AI provider configuration
-     */
+    
     public static function get_ai_config() {
         $raw_url = trim( get_option( 'sfc_ollama_url', 'https://api.ollama.com' ) );
         if ( empty( $raw_url ) || $raw_url === 'admin' || strpos( $raw_url, 'http' ) !== 0 ) {
@@ -20,7 +14,7 @@ class SFC_AI_Engine {
         }
 
         return [
-            'provider'        => get_option( 'sfc_ai_provider', 'ollama_cloud' ), // 'ollama_cloud', 'claude', 'gemini', 'builtin'
+            'provider'        => get_option( 'sfc_ai_provider', 'ollama_cloud' ), 
             'ollama_url'      => rtrim( $raw_url, '/' ),
             'ollama_api_key'  => get_option( 'sfc_ollama_api_key', '' ),
             'ollama_model'    => get_option( 'sfc_ollama_model', 'deepseek-v4.1-flash' ),
@@ -32,9 +26,7 @@ class SFC_AI_Engine {
         ];
     }
 
-    /**
-     * Build HTTP headers for Ollama Cloud (supports Bearer token)
-     */
+    
     public static function get_ollama_headers( $config ) {
         $headers = [
             'Content-Type' => 'application/json',
@@ -46,9 +38,7 @@ class SFC_AI_Engine {
         return $headers;
     }
 
-    /**
-     * Test connection to active AI provider
-     */
+    
     public static function test_ai_connection() {
         $config = self::get_ai_config();
         $provider = $config['provider'];
@@ -66,14 +56,14 @@ class SFC_AI_Engine {
 
             $headers = self::get_ollama_headers( $config );
 
-            // 1. Try GET /api/tags
+            
             $res = wp_remote_get( $host . '/api/tags', [
                 'headers' => $headers,
                 'timeout' => 10,
                 'sslverify' => false,
             ]);
 
-            // 2. If 404, try GET /v1/models (OpenAI compatibility on Ollama)
+            
             if ( ! is_wp_error( $res ) && wp_remote_retrieve_response_code( $res ) === 404 ) {
                 $res = wp_remote_get( $host . '/v1/models', [
                     'headers' => $headers,
@@ -212,14 +202,12 @@ class SFC_AI_Engine {
         ];
     }
 
-    /**
-     * Unified AI Dispatcher: analyzes fridge image
-     */
+    
     public static function analyze_fridge_image( $image_base64, $mime_type = 'image/jpeg' ) {
         $config = self::get_ai_config();
         $provider = $config['provider'];
 
-        // 1. Try Ollama Cloud
+        
         if ( $provider === 'ollama_cloud' || $provider === 'ollama' ) {
             $result = self::call_ollama_vision( $image_base64, $mime_type, $config );
             if ( ! empty( $result ) ) {
@@ -227,7 +215,7 @@ class SFC_AI_Engine {
             }
         }
 
-        // 2. Try Claude (Anthropic)
+        
         if ( $provider === 'claude' && ! empty( $config['claude_key'] ) ) {
             $result = self::call_claude_vision( $image_base64, $mime_type, $config );
             if ( ! empty( $result ) ) {
@@ -235,7 +223,7 @@ class SFC_AI_Engine {
             }
         }
 
-        // 3. Try Google Gemini
+        
         if ( $provider === 'gemini' && ! empty( $config['gemini_key'] ) ) {
             $result = self::call_gemini_vision( $image_base64, $mime_type, $config['gemini_key'] );
             if ( ! empty( $result ) ) {
@@ -243,13 +231,11 @@ class SFC_AI_Engine {
             }
         }
 
-        // 4. Fallback to smart detection
+        
         return self::smart_sample_fridge_detection();
     }
 
-    /**
-     * Call Ollama Cloud Vision API (Supports both /api/generate and /v1/chat/completions)
-     */
+    
     public static function call_ollama_vision( $base64_image, $mime_type, $config ) {
         $host = rtrim( $config['ollama_url'], '/' );
         if ( empty( $host ) || $host === 'https://your-ollama-cloud-host.com' ) {
@@ -268,7 +254,7 @@ class SFC_AI_Engine {
             . "  ]\n"
             . "}";
 
-        // Method A: Native Ollama /api/generate
+        
         $native_url = $host . '/api/generate';
         $native_payload = [
             'model'   => $config['ollama_model'] ?: 'llama3.2-vision',
@@ -294,7 +280,7 @@ class SFC_AI_Engine {
             }
         }
 
-        // Method B: OpenAI-compatible /v1/chat/completions for hosted Ollama Cloud proxies
+        
         $openai_url = $host . '/v1/chat/completions';
         $openai_payload = [
             'model'    => $config['ollama_model'] ?: 'llama3.2-vision',
@@ -333,9 +319,7 @@ class SFC_AI_Engine {
         return null;
     }
 
-    /**
-     * Call Anthropic Claude Vision API
-     */
+    
     public static function call_claude_vision( $base64_image, $mime_type, $config ) {
         $base_url = rtrim( $config['claude_base_url'] ?: 'https://api.anthropic.com', '/' );
         $url = $base_url . '/v1/messages';
@@ -397,9 +381,7 @@ class SFC_AI_Engine {
         return null;
     }
 
-    /**
-     * Call Google Gemini Vision API
-     */
+    
     public static function call_gemini_vision( $base64_image, $mime_type, $api_key ) {
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $api_key;
 
@@ -447,9 +429,7 @@ class SFC_AI_Engine {
         return null;
     }
 
-    /**
-     * Helper to parse and structure products JSON from AI models
-     */
+    
     public static function parse_ai_products_json( $raw_text ) {
         $cleaned = trim( $raw_text );
         $cleaned = preg_replace( '/^```(json)?\s*/i', '', $cleaned );
@@ -481,10 +461,7 @@ class SFC_AI_Engine {
         return ! empty( $results ) ? $results : null;
     }
 
-    /**
-     * AI-Powered Store Analysis & Recommendations
-     * Uses active AI model (Ollama Cloud / Claude / Gemini) to evaluate candidate stores against shopping list
-     */
+    
     public static function analyze_stores_with_ai( $stores, $shopping_list, $user_location ) {
         $config = self::get_ai_config();
         $provider = $config['provider'];
@@ -521,13 +498,13 @@ class SFC_AI_Engine {
 
         $ai_response_text = null;
 
-        // Try Ollama Cloud
+        
         if ( $provider === 'ollama_cloud' || $provider === 'ollama' ) {
             $host = rtrim( $config['ollama_url'], '/' );
             if ( ! empty( $host ) && $host !== 'https://your-ollama-cloud-host.com' ) {
                 $headers = self::get_ollama_headers( $config );
 
-                // Try /api/generate
+                
                 $res = wp_remote_post( $host . '/api/generate', [
                     'headers'   => $headers,
                     'body'      => wp_json_encode([
@@ -544,7 +521,7 @@ class SFC_AI_Engine {
                     $b = json_decode( wp_remote_retrieve_body( $res ), true );
                     $ai_response_text = $b['response'] ?? null;
                 } else {
-                    // Try /v1/chat/completions fallback
+                    
                     $res_v1 = wp_remote_post( $host . '/v1/chat/completions', [
                         'headers'   => $headers,
                         'body'      => wp_json_encode([
@@ -563,7 +540,7 @@ class SFC_AI_Engine {
             }
         }
 
-        // Try Claude
+        
         if ( $provider === 'claude' && ! empty( $config['claude_key'] ) ) {
             $base_url = rtrim( $config['claude_base_url'] ?: 'https://api.anthropic.com', '/' );
             $url = $base_url . '/v1/messages';
@@ -588,7 +565,7 @@ class SFC_AI_Engine {
             }
         }
 
-        // Try Gemini
+        
         if ( $provider === 'gemini' && ! empty( $config['gemini_key'] ) ) {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$config['gemini_model']}:generateContent?key={$config['gemini_key']}";
             $res = wp_remote_post( $url, [
@@ -642,9 +619,7 @@ class SFC_AI_Engine {
         return null;
     }
 
-    /**
-     * Parse text product list into structured products
-     */
+    
     public static function parse_text_products( $text ) {
         if ( empty( trim( $text ) ) ) {
             return [];
@@ -669,9 +644,7 @@ class SFC_AI_Engine {
         return $products;
     }
 
-    /**
-     * Normalize a single product item with quantity and category
-     */
+    
     public static function normalize_product_item( $raw_text ) {
         $text = mb_strtolower( trim( $raw_text ), 'UTF-8' );
 
@@ -711,9 +684,7 @@ class SFC_AI_Engine {
         ];
     }
 
-    /**
-     * Root word for matching
-     */
+    
     public static function get_product_root( $word ) {
         $word = mb_strtolower( trim( $word ), 'UTF-8' );
         $roots = [
@@ -773,9 +744,7 @@ class SFC_AI_Engine {
         return $word;
     }
 
-    /**
-     * Detect category and icon
-     */
+    
     public static function detect_category( $product_name ) {
         $p = mb_strtolower( $product_name, 'UTF-8' );
 
@@ -810,9 +779,7 @@ class SFC_AI_Engine {
         return [ 'category' => 'Другое', 'icon' => 'inventory_2', 'perishable' => false ];
     }
 
-    /**
-     * Fallback preset
-     */
+    
     public static function smart_sample_fridge_detection() {
         $preset = [
             [ 'name' => 'Яйца куриные', 'quantity' => '6 шт' ],
@@ -847,9 +814,7 @@ class SFC_AI_Engine {
         return $results;
     }
 
-    /**
-     * Recipe Knowledge Base
-     */
+    
     public static function get_recipe_database() {
         return [
             [
@@ -1104,9 +1069,7 @@ class SFC_AI_Engine {
         ];
     }
 
-    /**
-     * Match recipes against user's products
-     */
+    
     public static function match_recipes( $user_products ) {
         $recipes = self::get_recipe_database();
         $matched = [];
@@ -1194,9 +1157,7 @@ class SFC_AI_Engine {
         return $matched;
     }
 
-    /**
-     * Generate 7-Day Meal Plan & Shopping List
-     */
+    
     public static function generate_weekly_plan( $user_products ) {
         $matched_recipes = self::match_recipes( $user_products );
 

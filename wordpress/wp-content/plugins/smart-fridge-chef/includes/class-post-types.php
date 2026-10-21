@@ -1,7 +1,4 @@
 <?php
-/**
- * Custom Post Types for Smart Fridge Chef
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -15,7 +12,6 @@ class SFC_Post_Types {
     }
 
     public static function register_post_types() {
-        // 1. Recipes Custom Post Type
         register_post_type( 'sfc_recipe', [
             'labels' => [
                 'name'               => 'Рецепты',
@@ -39,7 +35,6 @@ class SFC_Post_Types {
             'rewrite'             => [ 'slug' => 'recipes' ],
         ]);
 
-        // 2. Meal Plans Custom Post Type
         register_post_type( 'sfc_meal_plan', [
             'labels' => [
                 'name'               => 'Планы питания',
@@ -59,7 +54,6 @@ class SFC_Post_Types {
     }
 
     public static function register_taxonomies() {
-        // Taxonomy for meal type: Breakfast, Lunch, Dinner, Snack
         register_taxonomy( 'sfc_meal_type', 'sfc_recipe', [
             'labels' => [
                 'name'          => 'Прием пищи',
@@ -72,7 +66,6 @@ class SFC_Post_Types {
             'rewrite'           => [ 'slug' => 'meal-type' ],
         ]);
 
-        // Taxonomy for cuisine: Russian, Italian, Asian, etc.
         register_taxonomy( 'sfc_cuisine', 'sfc_recipe', [
             'labels' => [
                 'name'          => 'Кухня',
