@@ -415,27 +415,17 @@
                 const shelf = document.createElement('div');
                 shelf.className = 'sfc-pantry-shelf';
 
-                const shelfIcon = catIcons[category] || 'kitchen';
-
                 let itemsHtml = '';
                 items.forEach(({ prod, index }) => {
-                    const iconName = prod.icon || shelfIcon;
-                    const freshClass = prod.perishable ? 'is-fresh' : 'is-stable';
-                    const freshLabel = prod.perishable ? 'Свежее' : 'Хранение';
+                    const freshLabel = prod.perishable ? 'Свежее' : 'Длительное хранение';
 
                     itemsHtml += `
                         <div class="sfc-pantry-card">
-                            <div class="sfc-pantry-card-icon">
-                                <span class="material-symbols-outlined">${iconName}</span>
-                            </div>
                             <div class="sfc-pantry-card-info">
                                 <span class="sfc-pantry-card-name">${escapeHtml(prod.name)}</span>
-                                <div class="sfc-pantry-card-meta">
-                                    <span class="sfc-pantry-card-qty">${escapeHtml(prod.quantity || '1 шт')}</span>
-                                    <span class="sfc-pantry-card-freshness ${freshClass}">• ${freshLabel}</span>
-                                </div>
+                                <span class="sfc-pantry-card-meta">${escapeHtml(prod.quantity || '1 шт')} • ${freshLabel}</span>
                             </div>
-                            <button type="button" class="sfc-pantry-card-remove btn-delete-prod" data-index="${index}" title="Убрать из холодильника" aria-label="Удалить">
+                            <button type="button" class="sfc-btn-remove-item btn-delete-prod" data-index="${index}" title="Удалить">
                                 <span class="material-symbols-outlined">close</span>
                             </button>
                         </div>
@@ -444,9 +434,7 @@
 
                 shelf.innerHTML = `
                     <div class="sfc-pantry-shelf-header">
-                        <span class="material-symbols-outlined sfc-shelf-header-icon">${shelfIcon}</span>
-                        <h3 class="sfc-pantry-shelf-title">${escapeHtml(category)}</h3>
-                        <span class="sfc-pantry-shelf-count">${items.length}</span>
+                        <h3 class="sfc-pantry-shelf-title">${escapeHtml(category)} (${items.length})</h3>
                     </div>
                     <div class="sfc-pantry-shelf-grid">
                         ${itemsHtml}
@@ -603,11 +591,8 @@
         if (!recipes || recipes.length === 0) {
             dom.recipesContainer.innerHTML = `
                 <div class="sfc-empty-placeholder" style="grid-column: 1 / -1; padding: 48px 16px;">
-                    <div class="sfc-empty-icon-circle">
-                        <span class="material-symbols-outlined sfc-empty-icon">menu_book</span>
-                    </div>
                     <h3>Подходящих рецептов не найдено</h3>
-                    <p class="sfc-subtext">Добавьте базовые продукты (яйца, овощи, сыр, молоко, крупы), чтобы шеф составил меню.</p>
+                    <p class="sfc-subtext">Добавьте базовые продукты (яйца, овощи, сыр, молоко, крупы), чтобы рассчитать рецепты.</p>
                 </div>
             `;
             return;
@@ -618,16 +603,13 @@
             card.className = 'sfc-recipe-card';
 
             const isReady = recipe.can_cook_now;
-            const missingCount = (recipe.missing_ingredients || []).length;
-            const badgeHtml = isReady
-                ? `<div class="sfc-recipe-floating-badge is-ready"><span class="material-symbols-outlined">check_circle</span><span>Все продукты есть</span></div>`
-                : `<div class="sfc-recipe-floating-badge is-shop"><span class="material-symbols-outlined">shopping_basket</span><span>Докупить: ${missingCount} прод.</span></div>`;
+            const statusHtml = isReady
+                ? `<div class="sfc-recipe-status is-ready">Все продукты есть в наличии</div>`
+                : `<div class="sfc-recipe-status is-shop">Докупить: ${escapeHtml((recipe.missing_ingredients || []).join(', '))}</div>`;
 
             let ingHtml = '';
             (recipe.ingredients_status || []).slice(0, 4).forEach(ing => {
-                const mark = ing.available
-                    ? '<span class="material-symbols-outlined sfc-ing-mark-avail">check</span>'
-                    : '<span class="material-symbols-outlined sfc-ing-mark-miss">add</span>';
+                const mark = ing.available ? '•' : '+';
                 const cls = ing.available ? 'is-available' : 'is-missing';
                 ingHtml += `<span class="sfc-recipe-ing-chip ${cls}">${mark} ${escapeHtml(ing.name)}</span>`;
             });
@@ -639,34 +621,27 @@
             card.innerHTML = `
                 <div class="sfc-recipe-cover">
                     <img src="${recipe.image}" alt="${escapeHtml(recipe.title)}" loading="lazy" />
-                    <div class="sfc-recipe-cover-gradient"></div>
-                    ${badgeHtml}
-                    <div class="sfc-recipe-floating-time">
-                        <span class="material-symbols-outlined">schedule</span>
-                        <span>${recipe.time_mins} мин</span>
-                    </div>
                 </div>
                 <div class="sfc-recipe-content">
                     <div class="sfc-recipe-top-meta">
                         <span class="sfc-recipe-type-tag">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
-                        <span class="sfc-recipe-calories">${recipe.calories} ккал</span>
+                        <span class="sfc-recipe-meta-text">${recipe.time_mins} мин • ${recipe.calories} ккал</span>
                     </div>
                     <h3 class="sfc-recipe-title">${escapeHtml(recipe.title)}</h3>
                     <p class="sfc-recipe-desc">${escapeHtml(recipe.description || '')}</p>
                     
+                    ${statusHtml}
+
                     <div class="sfc-recipe-ingredients-preview">
                         ${ingHtml}
                     </div>
 
                     <div class="sfc-recipe-footer">
                         <div class="sfc-recipe-macros">
-                            <span>Б: <strong>${recipe.protein}г</strong></span>
-                            <span>Ж: <strong>${recipe.fat}г</strong></span>
-                            <span>У: <strong>${recipe.carbs}г</strong></span>
+                            Б: ${recipe.protein}г • Ж: ${recipe.fat}г • У: ${recipe.carbs}г
                         </div>
                         <button type="button" class="sfc-btn-secondary sfc-btn-sm btn-view-recipe">
-                            <span>Рецепт</span>
-                            <span class="material-symbols-outlined">arrow_forward</span>
+                            Рецепт
                         </button>
                     </div>
                 </div>
@@ -693,17 +668,13 @@
     function openRecipeModal(recipe) {
         let ingHtml = '';
         (recipe.ingredients_status || []).forEach(ing => {
-            const mark = ing.available
-                ? '<span class="material-symbols-outlined sfc-modal-ing-check">check_circle</span>'
-                : '<span class="material-symbols-outlined sfc-modal-ing-shop">shopping_basket</span>';
             const statusLabel = ing.available
-                ? '<span class="sfc-modal-ing-tag ready">в наличии</span>'
-                : '<span class="sfc-modal-ing-tag shop">нужно докупить</span>';
+                ? '<span class="sfc-modal-status ready">в наличии</span>'
+                : '<span class="sfc-modal-status shop">докупить</span>';
 
             ingHtml += `
                 <li class="sfc-modal-ing-item">
                     <div class="sfc-modal-ing-left">
-                        ${mark}
                         <span class="sfc-modal-ing-name">${escapeHtml(ing.name)}</span>
                         ${statusLabel}
                     </div>
@@ -714,10 +685,9 @@
 
         let stepHtml = '';
         (recipe.instructions || []).forEach((step, idx) => {
-            const num = (idx + 1).toString().padStart(2, '0');
             stepHtml += `
                 <li class="sfc-modal-step-item">
-                    <span class="sfc-modal-step-num">${num}</span>
+                    <span class="sfc-modal-step-num">${idx + 1}.</span>
                     <p class="sfc-modal-step-text">${escapeHtml(step)}</p>
                 </li>
             `;
@@ -730,43 +700,37 @@
                 <p class="sfc-modal-recipe-desc">${escapeHtml(recipe.description || '')}</p>
                 <div class="sfc-modal-nutrition-strip">
                     <div class="sfc-modal-nut-item">
-                        <span class="nut-label">Время</span>
+                        <span class="nut-label">Время:</span>
                         <span class="nut-val">${recipe.time_mins} мин</span>
                     </div>
                     <div class="sfc-modal-nut-item">
-                        <span class="nut-label">Калории</span>
+                        <span class="nut-label">Калории:</span>
                         <span class="nut-val">${recipe.calories} ккал</span>
                     </div>
                     <div class="sfc-modal-nut-item">
-                        <span class="nut-label">Белки</span>
+                        <span class="nut-label">Белки:</span>
                         <span class="nut-val">${recipe.protein}г</span>
                     </div>
                     <div class="sfc-modal-nut-item">
-                        <span class="nut-label">Жиры</span>
+                        <span class="nut-label">Жиры:</span>
                         <span class="nut-val">${recipe.fat}г</span>
                     </div>
                     <div class="sfc-modal-nut-item">
-                        <span class="nut-label">Углеводы</span>
+                        <span class="nut-label">Углеводы:</span>
                         <span class="nut-val">${recipe.carbs}г</span>
                     </div>
                 </div>
             </div>
 
             <div class="sfc-modal-section">
-                <h3 class="sfc-modal-section-title">
-                    <span class="material-symbols-outlined">receipt_long</span>
-                    <span>Необходимые ингредиенты</span>
-                </h3>
+                <h3 class="sfc-modal-section-title">Ингредиенты</h3>
                 <ul class="sfc-modal-ingredients-list">
                     ${ingHtml}
                 </ul>
             </div>
 
             <div class="sfc-modal-section">
-                <h3 class="sfc-modal-section-title">
-                    <span class="material-symbols-outlined">soup_kitchen</span>
-                    <span>Пошаговое приготовление</span>
-                </h3>
+                <h3 class="sfc-modal-section-title">Приготовление</h3>
                 <ol class="sfc-modal-steps-list">
                     ${stepHtml}
                 </ol>
@@ -774,7 +738,7 @@
 
             <div class="sfc-modal-bottom-actions">
                 <button type="button" class="sfc-btn-primary" onclick="document.getElementById('sfc-recipe-modal').style.display='none';">
-                    Понятно, готовить!
+                    Закрыть
                 </button>
             </div>
         `;
@@ -807,7 +771,6 @@
 
         dom.dayViewContainer.innerHTML = `
             <div class="sfc-day-strategy-notice">
-                <span class="material-symbols-outlined sfc-strategy-icon">tips_and_updates</span>
                 <div class="sfc-strategy-text">
                     <strong>Фокус дня:</strong> ${escapeHtml(activeDay.focus)}
                 </div>
@@ -854,29 +817,28 @@
     function renderMealSlot(dayIndex, label, slotKey, meal) {
         if (!meal) return '';
         const isFromFridge = meal.can_cook_from_fridge !== undefined ? meal.can_cook_from_fridge : meal.can_cook_now;
-        const statusHtml = isFromFridge
-            ? `<span class="sfc-slot-state ready"><span class="material-symbols-outlined">check_circle</span> Из холодильника</span>`
-            : `<span class="sfc-slot-state shop"><span class="material-symbols-outlined">shopping_basket</span> Докупить: ${(meal.missing_items || []).slice(0, 1).join(', ')}</span>`;
+        const statusText = isFromFridge
+            ? 'В наличии'
+            : 'Докупить: ' + (meal.missing_items || []).slice(0, 1).join(', ');
 
         return `
             <div class="sfc-slot-card">
                 <div class="sfc-slot-head">
                     <span class="sfc-slot-tag">${label}</span>
-                    ${statusHtml}
+                    <span class="sfc-slot-status ${isFromFridge ? 'ready' : 'shop'}">${statusText}</span>
                 </div>
                 <div class="sfc-slot-img">
                     <img src="${meal.image}" alt="${escapeHtml(meal.title)}" loading="lazy" />
                 </div>
                 <h4 class="sfc-slot-title">${escapeHtml(meal.title)}</h4>
                 <div class="sfc-slot-meta">
-                    <span><span class="material-symbols-outlined">schedule</span> ${meal.time_mins} мин</span>
-                    <span><span class="material-symbols-outlined">local_fire_department</span> ${meal.calories} ккал</span>
+                    <span>${meal.time_mins} мин • ${meal.calories} ккал</span>
                 </div>
                 <div class="sfc-slot-actions">
                     <button type="button" class="sfc-btn-secondary sfc-btn-sm btn-open-slot-recipe" data-recipe-id="${meal.id}">
                         Рецепт
                     </button>
-                    <button type="button" class="sfc-btn-subtle sfc-btn-sm btn-swap-slot" data-day="${dayIndex}" data-slot="${slotKey}" data-type="${label}">
+                    <button type="button" class="sfc-btn-secondary sfc-btn-sm btn-swap-slot" data-day="${dayIndex}" data-slot="${slotKey}" data-type="${label}">
                         Заменить
                     </button>
                 </div>
@@ -887,7 +849,7 @@
     function openSwapModal(dayIndex, slotKey, mealType) {
         state.currentSwapSlot = { dayIndex, slotKey, mealType };
         dom.swapTitle.textContent = `Замена блюда: ${mealType} (${state.weeklyPlan[dayIndex].day_name})`;
-        dom.swapSubtitle.textContent = 'Выберите блюдо только из имеющихся продуктов или с быстрой докупкой';
+        dom.swapSubtitle.textContent = 'Выберите альтернативное блюдо';
         dom.swapList.innerHTML = '';
 
         let candidates = (state.recipesByType && state.recipesByType[mealType]) ? state.recipesByType[mealType] : [];
@@ -910,8 +872,8 @@
         uniqueCandidates.forEach(cand => {
             const isReady = cand.can_cook_now;
             const tag = isReady
-                ? '<span class="sfc-swap-badge is-ready"><span class="material-symbols-outlined">check_circle</span> Из холодильника</span>'
-                : `<span class="sfc-swap-badge is-shop"><span class="material-symbols-outlined">shopping_basket</span> Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
+                ? '<span class="sfc-swap-status ready">Из холодильника</span>'
+                : `<span class="sfc-swap-status shop">Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
 
             const item = document.createElement('div');
             item.className = 'sfc-swap-item';
@@ -920,30 +882,10 @@
                     <div class="sfc-swap-item-title">${escapeHtml(cand.title)}</div>
                     <div class="sfc-swap-item-meta">
                         ${tag}
-                        <span><span class="material-symbols-outlined">schedule</span> ${cand.time_mins} мин</span>
-                        <span><span class="material-symbols-outlined">local_fire_department</span> ${cand.calories} ккал</span>
+                        <span>${cand.time_mins} мин • ${cand.calories} ккал</span>
                     </div>
                 </div>
                 <button type="button" class="sfc-btn-primary sfc-btn-sm btn-choose-swap">
-                    Выбрать
-                </button>
-            `;
-
-            item.querySelector('.btn-choose-swap').addEventListener('click', () => {
-                applySwapMeal(cand);
-            });
-
-            dom.swapList.appendChild(item);
-        });
-
-        dom.swapModal.style.display = 'flex';
-    }
-                        ${tag}
-                        <span>${cand.time_mins} мин</span>
-                        <span>${cand.calories} ккал</span>
-                    </div>
-                </div>
-                <button type="button" class="sfc-btn-m3 sfc-btn-primary sfc-btn-sm btn-choose-swap">
                     Выбрать
                 </button>
             `;
@@ -1369,9 +1311,9 @@
 
         const userIcon = L.divIcon({
             className: 'sfc-user-pin',
-            html: '<div style="background:#2D5E3B; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);"><span class="material-symbols-outlined" style="font-size:16px;">my_location</span></div>',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
+            html: '<div style="background:#0f172a; color:#fff; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">my_location</span></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
         });
 
         state.userMarker = L.marker([state.userLocation.lat, state.userLocation.lon], { icon: userIcon })
@@ -1380,21 +1322,21 @@
 
         (state.stores || []).forEach(store => {
             const isRec = state.recommendation?.store?.id === store.id;
-            const markerBg = isRec ? '#C85A32' : '#2D5E3B';
+            const markerBg = isRec ? '#b91c1c' : '#0f172a';
 
             const storeIcon = L.divIcon({
                 className: 'sfc-store-pin',
-                html: `<div style="background:${markerBg}; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);"><span class="material-symbols-outlined" style="font-size:18px;">storefront</span></div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
+                html: `<div style="background:${markerBg}; color:#fff; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid #fff;"><span class="material-symbols-outlined" style="font-size:16px;">storefront</span></div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
             });
 
             const popupContent = `
                 <div style="font-family:\'Plus Jakarta Sans\',sans-serif; min-width:180px; padding:4px;">
-                    <div style="font-family:\'Lora\',serif; font-size:15px; font-weight:600; margin-bottom:3px; color:#1F1A16;">${escapeHtml(store.name)}</div>
-                    <div style="font-size:12px; color:#6B6156; margin-bottom:4px;">${escapeHtml(store.address || '')}</div>
-                    <div style="font-size:12px; font-weight:600; color:#2D5E3B; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
-                    <a href="https://yandex.ru/maps/?rtext=~${store.lat},${store.lon}&rtt=pd" target="_blank" style="display:inline-block; background:#2D5E3B; color:#fff; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; text-decoration:none;">Маршрут</a>
+                    <div style="font-size:14px; font-weight:700; margin-bottom:2px; color:#0f172a;">${escapeHtml(store.name)}</div>
+                    <div style="font-size:12px; color:#64748b; margin-bottom:4px;">${escapeHtml(store.address || '')}</div>
+                    <div style="font-size:12px; font-weight:600; color:#0f172a; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
+                    <a href="https://yandex.ru/maps/?rtext=~${store.lat},${store.lon}&rtt=pd" target="_blank" style="display:inline-block; background:#0f172a; color:#fff; padding:4px 10px; font-size:12px; font-weight:500; text-decoration:none;">Маршрут</a>
                 </div>
             `;
 
