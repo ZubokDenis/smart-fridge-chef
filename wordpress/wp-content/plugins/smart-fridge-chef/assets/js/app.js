@@ -414,27 +414,36 @@
             for (const [category, items] of Object.entries(groups)) {
                 const shelf = document.createElement('div');
                 shelf.className = 'sfc-pantry-shelf';
+                const catIcon = catIcons[category] || 'restaurant';
 
                 let itemsHtml = '';
                 items.forEach(({ prod, index }) => {
-                    const freshLabel = prod.perishable ? 'Свежее' : 'Длительное хранение';
+                    const freshLabel = prod.perishable ? 'Свежий продукт' : 'Длительное хранение';
+                    const freshClass = prod.perishable ? 'is-fresh' : 'is-shelf';
 
                     itemsHtml += `
                         <div class="sfc-pantry-card">
-                            <div class="sfc-pantry-card-info">
+                            <div class="sfc-pantry-card-left">
+                                <span class="sfc-freshness-dot ${freshClass}" title="${freshLabel}"></span>
                                 <span class="sfc-pantry-card-name">${escapeHtml(prod.name)}</span>
-                                <span class="sfc-pantry-card-meta">${escapeHtml(prod.quantity || '1 шт')} • ${freshLabel}</span>
                             </div>
-                            <button type="button" class="sfc-btn-remove-item btn-delete-prod" data-index="${index}" title="Удалить">
-                                <span class="material-symbols-outlined">close</span>
-                            </button>
+                            <div class="sfc-pantry-card-right">
+                                <span class="sfc-pantry-card-qty">${escapeHtml(prod.quantity || '1 шт')}</span>
+                                <button type="button" class="sfc-btn-remove-item btn-delete-prod" data-index="${index}" title="Удалить ${escapeHtml(prod.name)}" aria-label="Удалить">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
 
                 shelf.innerHTML = `
                     <div class="sfc-pantry-shelf-header">
-                        <h3 class="sfc-pantry-shelf-title">${escapeHtml(category)} (${items.length})</h3>
+                        <div class="sfc-pantry-shelf-heading">
+                            <span class="material-symbols-outlined sfc-pantry-shelf-icon">${catIcon}</span>
+                            <h3 class="sfc-pantry-shelf-title">${escapeHtml(category)}</h3>
+                        </div>
+                        <span class="sfc-pantry-shelf-count">${items.length}</span>
                     </div>
                     <div class="sfc-pantry-shelf-grid">
                         ${itemsHtml}
@@ -580,7 +589,7 @@
             alert('Ошибка при составлении меню.');
         })
         .finally(() => {
-            dom.btnStartCook.innerHTML = '<span>Рассчитать меню</span> <span class="material-symbols-outlined">arrow_forward</span>';
+            dom.btnStartCook.innerHTML = '<span>Составить меню</span> <span class="material-symbols-outlined">arrow_forward</span>';
             dom.btnStartCook.disabled = false;
         });
     }
@@ -1311,32 +1320,32 @@
 
         const userIcon = L.divIcon({
             className: 'sfc-user-pin',
-            html: '<div style="background:#0f172a; color:#fff; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">my_location</span></div>',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
+            html: '<div style="background:#285430; color:#fff; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.25); font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">my_location</span></div>',
+            iconSize: [26, 26],
+            iconAnchor: [13, 13]
         });
 
         state.userMarker = L.marker([state.userLocation.lat, state.userLocation.lon], { icon: userIcon })
             .addTo(state.map)
-            .bindPopup('<strong style="font-family:\'Montserrat\',sans-serif; font-size:13px;">Вы находитесь здесь</strong>');
+            .bindPopup('<strong style="font-family:\'Montserrat\',sans-serif; font-size:13px; color:#1F1A16;">Вы находитесь здесь</strong>');
 
         (state.stores || []).forEach(store => {
             const isRec = state.recommendation?.store?.id === store.id;
-            const markerBg = isRec ? '#b91c1c' : '#0f172a';
+            const markerBg = isRec ? '#C3532C' : '#285430';
 
             const storeIcon = L.divIcon({
                 className: 'sfc-store-pin',
-                html: `<div style="background:${markerBg}; color:#fff; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid #fff;"><span class="material-symbols-outlined" style="font-size:16px;">storefront</span></div>`,
-                iconSize: [26, 26],
-                iconAnchor: [13, 13]
+                html: `<div style="background:${markerBg}; color:#fff; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.2);"><span class="material-symbols-outlined" style="font-size:17px;">storefront</span></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
             });
 
             const popupContent = `
-                <div style="font-family:\'Montserrat\',sans-serif; min-width:180px; padding:4px;">
-                    <div style="font-size:14px; font-weight:700; margin-bottom:2px; color:#0f172a;">${escapeHtml(store.name)}</div>
-                    <div style="font-size:12px; color:#64748b; margin-bottom:4px;">${escapeHtml(store.address || '')}</div>
-                    <div style="font-size:12px; font-weight:600; color:#0f172a; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
-                    <a href="https://yandex.ru/maps/?rtext=~${store.lat},${store.lon}&rtt=pd" target="_blank" style="display:inline-block; background:#0f172a; color:#fff; padding:4px 10px; font-size:12px; font-weight:500; text-decoration:none;">Маршрут</a>
+                <div style="font-family:'Montserrat',sans-serif; min-width:180px; padding:4px;">
+                    <div style="font-family:'Lora',serif; font-size:15px; font-weight:700; margin-bottom:4px; color:#1F1A16;">${escapeHtml(store.name)}</div>
+                    <div style="font-size:12px; color:#5A5148; margin-bottom:6px;">${escapeHtml(store.address || '')}</div>
+                    <div style="font-size:12.5px; font-weight:600; color:#C3532C; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
+                    <a href="https://yandex.ru/maps/?rtext=~${store.lat},${store.lon}&rtt=pd" target="_blank" style="display:inline-block; background:#285430; color:#fff; padding:6px 12px; font-size:12px; font-weight:600; border-radius:6px; text-decoration:none;">Построить маршрут</a>
                 </div>
             `;
 

@@ -58,13 +58,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
                 <div class="sfc-panel sfc-panel-input">
                     <div class="sfc-panel-header">
-                        <h2>Продукты в наличии</h2>
-                        <p class="sfc-subtext">Загрузите фотографию полок холодильника или добавьте список текстом</p>
+                        <h2>Что у вас в холодильнике?</h2>
+                        <p class="sfc-subtext">Сфотографируйте полки с продуктами или добавьте список текстом</p>
                     </div>
 
                     <div class="sfc-segmented-control">
                         <button type="button" class="sfc-segment active" id="btn-mode-photo">
-                            <span>Фото холодильника</span>
+                            <span>Фото полок</span>
                         </button>
                         <button type="button" class="sfc-segment" id="btn-mode-text">
                             <span>Текстовый список</span>
@@ -74,14 +74,17 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div id="sfc-photo-area" class="sfc-upload-container">
                         <input type="file" id="sfc-file-input" accept="image/*" class="sfc-hidden-input" />
                         <div class="sfc-dropzone" id="sfc-dropzone">
+                            <div class="sfc-dropzone-icon">
+                                <span class="material-symbols-outlined">kitchen</span>
+                            </div>
                             <div class="sfc-dropzone-label">
-                                <strong>Перетащите фотографию продуктов сюда</strong>
-                                <span>JPG, PNG или WebP со снимком содержимого холодильника</span>
+                                <strong>Сфотографируйте холодильник, остальное мы возьмём на себя</strong>
+                                <span>Снимок полок или продуктов на столе (JPG, PNG, WebP)</span>
                             </div>
                             <div class="sfc-dropzone-actions">
                                 <button type="button" class="sfc-btn-primary" id="sfc-btn-choose-file">
-                                    <span class="material-symbols-outlined">upload_file</span>
-                                    <span>Выбрать файл</span>
+                                    <span class="material-symbols-outlined">add_a_photo</span>
+                                    <span>Выбрать фото</span>
                                 </button>
                                 <button type="button" class="sfc-btn-secondary" id="sfc-btn-camera">
                                     <span class="material-symbols-outlined">photo_camera</span>
@@ -121,7 +124,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </div>
 
                     <div class="sfc-preset-section">
-                        <span class="sfc-preset-title">Готовые наборы:</span>
+                        <span class="sfc-preset-title">Готовые наборы для быстрого старта:</span>
                         <div class="sfc-preset-buttons">
                             <button type="button" class="sfc-preset-chip" data-preset="family">Семейный набор</button>
                             <button type="button" class="sfc-preset-chip" data-preset="bachelor">Холостяцкий</button>
@@ -134,8 +137,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div class="sfc-panel sfc-panel-pantry">
                     <div class="sfc-panel-header sfc-flex-between">
                         <div>
-                            <h2>Список продуктов</h2>
-                            <p class="sfc-subtext">Ингредиенты для расчета рецептов и меню на неделю</p>
+                            <h2>Ваш кулинарный запас</h2>
+                            <p class="sfc-subtext">Продукты, из которых шеф составит меню на каждый день</p>
                         </div>
                         <button type="button" class="sfc-btn-secondary" id="sfc-btn-add-manual-product">
                             <span class="material-symbols-outlined">add</span>
@@ -144,8 +147,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </div>
 
                     <div id="sfc-products-empty" class="sfc-empty-placeholder">
-                        <h3>Холодильник пуст</h3>
-                        <p>Загрузите фотографию продуктов или введите список текстом.</p>
+                        <div class="sfc-empty-icon-wrap">
+                            <span class="material-symbols-outlined">kitchen</span>
+                        </div>
+                        <h3>В холодильнике пока пусто</h3>
+                        <p>Сфотографируйте полки, введите список или выберите готовый набор слева, чтобы наполнить запасы.</p>
                     </div>
 
                     <div id="sfc-products-list-wrapper" style="display: none;">
@@ -156,11 +162,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
                         <div class="sfc-bottom-cta">
                             <div class="sfc-cta-info">
-                                <strong>Список сформирован</strong>
-                                <span>Перейдите к расчету блюд и формированию рациона</span>
+                                <strong>Список продуктов готов</strong>
+                                <span>Шеф рассчитает сбалансированное меню и рецепты на неделю</span>
                             </div>
                             <button type="button" class="sfc-btn-primary sfc-btn-lg" id="sfc-btn-start-cook">
-                                <span>Рассчитать меню</span>
+                                <span>Составить меню</span>
                                 <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
                         </div>
@@ -172,12 +178,12 @@ if ( ! defined( 'ABSPATH' ) ) {
         <section id="tab-recipes" class="sfc-view">
             <div class="sfc-view-header">
                 <div>
-                    <h2>Рецепты блюд</h2>
-                    <p class="sfc-subtext">Блюда, сформированные на основе продуктов в вашем холодильнике</p>
+                    <h2>Блюда из ваших продуктов</h2>
+                    <p class="sfc-subtext">Рецепты, подобранные специально под ваш запас продуктов</p>
                 </div>
                 <div class="sfc-filter-pills" id="sfc-recipe-filters">
                     <button type="button" class="sfc-filter-pill active" data-filter="all">Все блюда</button>
-                    <button type="button" class="sfc-filter-pill" data-filter="ready">Из того, что есть</button>
+                    <button type="button" class="sfc-filter-pill" data-filter="ready">Можно готовить сразу</button>
                     <button type="button" class="sfc-filter-pill" data-filter="need_more">С докупкой продуктов</button>
                 </div>
             </div>
@@ -218,7 +224,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             <div class="sfc-view-header sfc-flex-between">
                 <div>
                     <h2>Список покупок</h2>
-                    <p class="sfc-subtext">Недостающие продукты для недельного рациона за вычетом содержимого холодильника</p>
+                    <p class="sfc-subtext">Только то, чего не хватает в холодильнике для меню на неделю</p>
                 </div>
                 <button type="button" class="sfc-btn-primary" id="sfc-btn-go-to-stores">
                     <span class="material-symbols-outlined">storefront</span>
