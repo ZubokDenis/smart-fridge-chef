@@ -1318,7 +1318,7 @@
 
         state.userMarker = L.marker([state.userLocation.lat, state.userLocation.lon], { icon: userIcon })
             .addTo(state.map)
-            .bindPopup('<strong style="font-family:\'Plus Jakarta Sans\',sans-serif; font-size:13px;">Вы находитесь здесь</strong>');
+            .bindPopup('<strong style="font-family:\'Montserrat\',sans-serif; font-size:13px;">Вы находитесь здесь</strong>');
 
         (state.stores || []).forEach(store => {
             const isRec = state.recommendation?.store?.id === store.id;
@@ -1332,7 +1332,7 @@
             });
 
             const popupContent = `
-                <div style="font-family:\'Plus Jakarta Sans\',sans-serif; min-width:180px; padding:4px;">
+                <div style="font-family:\'Montserrat\',sans-serif; min-width:180px; padding:4px;">
                     <div style="font-size:14px; font-weight:700; margin-bottom:2px; color:#0f172a;">${escapeHtml(store.name)}</div>
                     <div style="font-size:12px; color:#64748b; margin-bottom:4px;">${escapeHtml(store.address || '')}</div>
                     <div style="font-size:12px; font-weight:600; color:#0f172a; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
