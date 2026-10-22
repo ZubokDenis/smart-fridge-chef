@@ -42,7 +42,7 @@ function sfc_disable_wp_emojis() {
 
 add_action( 'wp_enqueue_scripts', 'sfc_enqueue_assets' );
 function sfc_enqueue_assets() {
-    wp_enqueue_style( 'sfc-google-fonts', 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap', [], null );
+    wp_enqueue_style( 'sfc-google-fonts', 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Roboto:wght@400;500;700&display=swap', [], null );
     wp_enqueue_style( 'google-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0', [], null );
     wp_enqueue_style( 'leaflet-css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', [], '1.9.4' );
     wp_enqueue_script( 'leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', [], '1.9.4', true );

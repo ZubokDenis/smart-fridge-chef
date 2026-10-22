@@ -7,55 +7,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <div id="smart-fridge-app" class="sfc-app-root">
 
-    
     <header class="sfc-topbar">
         <div class="sfc-topbar-inner">
             <div class="sfc-topbar-left">
+                <div class="sfc-brand-icon-wrapper">
+                    <span class="material-symbols-outlined sfc-brand-icon">soup_kitchen</span>
+                </div>
                 <div class="sfc-title-group">
-                    <h1 class="sfc-app-title">Холодильник & Меню</h1>
-                    <span class="sfc-app-tagline">Планирование рациона и умные закупки</span>
+                    <h1 class="sfc-app-title">Умный Шеф</h1>
+                    <span class="sfc-app-tagline">Кулинарный органайзер, рецепты и планирование рациона</span>
                 </div>
             </div>
 
             <div class="sfc-topbar-right">
-                
-                <div class="sfc-ai-status-pill" id="sfc-ai-status-badge" title="Активный движок ИИ">
-                    <span class="sfc-ai-dot"></span>
-                    <span id="sfc-ai-status-text">ИИ: Подключение...</span>
-                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=smart-fridge-chef' ) ); ?>" class="sfc-ai-config-link" title="Настройки ИИ">
-                        <span class="material-symbols-outlined">settings</span>
-                    </a>
-                </div>
-
-                <button type="button" id="sfc-btn-demo" class="sfc-btn-text" title="Заполнить готовым примером">
+                <button type="button" id="sfc-btn-demo" class="sfc-btn-subtle" title="Заполнить готовым набором продуктов">
                     <span class="material-symbols-outlined">playlist_add</span>
-                    <span>Пример</span>
+                    <span>Пример продуктов</span>
                 </button>
-                <button type="button" id="sfc-btn-reset" class="sfc-btn-icon" title="Очистить все данные">
+                <button type="button" id="sfc-btn-reset" class="sfc-btn-icon-subtle" title="Очистить все данные">
                     <span class="material-symbols-outlined">delete_sweep</span>
                 </button>
+                <a href="<?php echo esc_url( admin_url( 'admin.php?page=smart-fridge-chef' ) ); ?>" class="sfc-btn-icon-subtle" title="Настройки подключения" id="sfc-ai-status-badge">
+                    <span class="material-symbols-outlined">tune</span>
+                </a>
+                <span id="sfc-ai-status-text" style="display:none;"></span>
             </div>
         </div>
 
-        
         <nav class="sfc-nav-tabs" id="sfc-main-tabs" role="tablist">
             <button class="sfc-nav-item active" data-tab="tab-fridge" role="tab">
-                <span>1. Холодильник</span>
+                <span class="material-symbols-outlined sfc-tab-icon">kitchen</span>
+                <span>Мой холодильник</span>
                 <span class="sfc-counter" id="sfc-badge-products-count">0</span>
             </button>
             <button class="sfc-nav-item" data-tab="tab-recipes" role="tab">
-                <span>2. Рецепты</span>
+                <span class="material-symbols-outlined sfc-tab-icon">menu_book</span>
+                <span>Рецепты</span>
                 <span class="sfc-counter" id="sfc-badge-recipes-count">0</span>
             </button>
             <button class="sfc-nav-item" data-tab="tab-plan" role="tab">
-                <span>3. План на неделю</span>
+                <span class="material-symbols-outlined sfc-tab-icon">calendar_month</span>
+                <span>Меню на неделю</span>
             </button>
             <button class="sfc-nav-item" data-tab="tab-shopping" role="tab">
-                <span>4. Список покупок</span>
+                <span class="material-symbols-outlined sfc-tab-icon">checklist</span>
+                <span>Список покупок</span>
                 <span class="sfc-counter" id="sfc-badge-shopping-count">0</span>
             </button>
             <button class="sfc-nav-item" data-tab="tab-stores" role="tab">
-                <span>5. Магазины рядом</span>
+                <span class="material-symbols-outlined sfc-tab-icon">storefront</span>
+                <span>Магазины рядом</span>
             </button>
         </nav>
     </header>
@@ -67,52 +68,48 @@ if ( ! defined( 'ABSPATH' ) ) {
         <section id="tab-fridge" class="sfc-view active">
             <div class="sfc-split-layout">
 
-                
-                <div class="sfc-panel">
+                <div class="sfc-panel sfc-panel-input">
                     <div class="sfc-panel-header">
-                        <h2>Ввод продуктов</h2>
-                        <p class="sfc-subtext">Загрузите фотографию полок холодильника или напишите список текстом</p>
+                        <h2>Что у вас в холодильнике?</h2>
+                        <p class="sfc-subtext">Сфотографируйте полки холодильника или перечислите продукты вручную</p>
                     </div>
 
-                    
                     <div class="sfc-segmented-control">
                         <button type="button" class="sfc-segment active" id="btn-mode-photo">
                             <span class="material-symbols-outlined">photo_camera</span>
-                            <span>Фото холодильника</span>
+                            <span>Фото продуктов</span>
                         </button>
                         <button type="button" class="sfc-segment" id="btn-mode-text">
-                            <span class="material-symbols-outlined">edit</span>
+                            <span class="material-symbols-outlined">edit_note</span>
                             <span>Текстовый список</span>
                         </button>
                     </div>
 
-                    
                     <div id="sfc-photo-area" class="sfc-upload-container">
                         <input type="file" id="sfc-file-input" accept="image/*" class="sfc-hidden-input" />
                         <div class="sfc-dropzone" id="sfc-dropzone">
                             <div class="sfc-dropzone-icon">
-                                <span class="material-symbols-outlined">cloud_upload</span>
+                                <span class="material-symbols-outlined">add_a_photo</span>
                             </div>
                             <div class="sfc-dropzone-label">
-                                <strong>Перетащите фотографию сюда</strong>
-                                <span>Форматы: JPG, PNG, WebP (автоматическая оптимизация)</span>
+                                <strong>Перетащите фотографию продуктов сюда</strong>
+                                <span>JPG, PNG или WebP со снимком полок или корзины</span>
                             </div>
                             <div class="sfc-dropzone-actions">
-                                <button type="button" class="sfc-btn-m3 sfc-btn-primary" id="sfc-btn-choose-file">
+                                <button type="button" class="sfc-btn-primary" id="sfc-btn-choose-file">
                                     <span class="material-symbols-outlined">upload_file</span>
-                                    <span>Выбрать фото</span>
+                                    <span>Выбрать снимок</span>
                                 </button>
-                                <button type="button" class="sfc-btn-m3 sfc-btn-outlined" id="sfc-btn-camera">
+                                <button type="button" class="sfc-btn-secondary" id="sfc-btn-camera">
                                     <span class="material-symbols-outlined">photo_camera</span>
                                     <span>С камеры</span>
                                 </button>
                             </div>
                         </div>
 
-                        
                         <div id="sfc-image-preview-wrapper" class="sfc-preview-box" style="display: none;">
                             <div class="sfc-preview-img-container">
-                                <img id="sfc-image-preview" src="" alt="Фотография холодильника" />
+                                <img id="sfc-image-preview" src="" alt="Фотография продуктов" />
                                 <div class="sfc-linear-progress" id="sfc-progress-bar">
                                     <div class="sfc-linear-progress-bar"></div>
                                 </div>
@@ -120,87 +117,74 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <div class="sfc-preview-footer">
                                 <div class="sfc-preview-status" id="sfc-scan-status-text">
                                     <span class="material-symbols-outlined sfc-spin">sync</span>
-                                    <span>ИИ анализирует снимок и подбирает рецепты...</span>
+                                    <span>Определение продуктов и подбор рецептов...</span>
                                 </div>
-                                <button type="button" class="sfc-btn-m3 sfc-btn-text sfc-btn-danger" id="sfc-btn-remove-photo">
-                                    <span class="material-symbols-outlined">delete</span>
-                                    <span>Сменить фото</span>
+                                <button type="button" class="sfc-btn-ghost-danger" id="sfc-btn-remove-photo">
+                                    <span class="material-symbols-outlined">delete_outline</span>
+                                    <span>Сменить снимок</span>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    
                     <div id="sfc-text-area" class="sfc-text-container" style="display: none;">
                         <div class="sfc-textarea-wrapper">
-                            <textarea id="sfc-text-products" rows="4" class="sfc-textarea-m3" placeholder="Например: 4 яйца, молоко 1 л, сыр 200г, куриное филе 500г, 2 помидора, макароны, картофель..."></textarea>
+                            <textarea id="sfc-text-products" rows="4" class="sfc-textarea" placeholder="Например: 4 яйца, молоко 1 л, сыр 200г, куриное филе 500г, 2 помидора, макароны, картофель..."></textarea>
                         </div>
                         <div class="sfc-text-footer">
-                            <button type="button" class="sfc-btn-m3 sfc-btn-primary" id="sfc-btn-parse-text">
-                                <span class="material-symbols-outlined">smart_toy</span>
-                                <span>Распознать через ИИ</span>
+                            <button type="button" class="sfc-btn-primary" id="sfc-btn-parse-text">
+                                <span class="material-symbols-outlined">playlist_add_check</span>
+                                <span>Добавить продукты</span>
                             </button>
                         </div>
                     </div>
 
-                    
                     <div class="sfc-preset-section">
-                        <span class="sfc-preset-title">Готовые примеры продуктов:</span>
+                        <span class="sfc-preset-title">Быстрые примеры продуктов:</span>
                         <div class="sfc-preset-buttons">
-                            <button type="button" class="sfc-btn-subtle" data-preset="family">Семейный набор</button>
-                            <button type="button" class="sfc-btn-subtle" data-preset="bachelor">Холостяцкий</button>
-                            <button type="button" class="sfc-btn-subtle" data-preset="healthy">ЗОЖ / Спорт</button>
-                            <button type="button" class="sfc-btn-subtle" data-preset="minimal">Минимум</button>
+                            <button type="button" class="sfc-preset-chip" data-preset="family">Семейный набор</button>
+                            <button type="button" class="sfc-preset-chip" data-preset="bachelor">Холостяцкий</button>
+                            <button type="button" class="sfc-preset-chip" data-preset="healthy">ЗОЖ / Спорт</button>
+                            <button type="button" class="sfc-preset-chip" data-preset="minimal">Минимум</button>
                         </div>
                     </div>
                 </div>
 
-                
-                <div class="sfc-panel">
+                <div class="sfc-panel sfc-panel-pantry">
                     <div class="sfc-panel-header sfc-flex-between">
                         <div>
-                            <h2>Продукты в наличии</h2>
-                            <p class="sfc-subtext">Ингредиенты, готовые для расчета меню</p>
+                            <h2>Полки холодильника</h2>
+                            <p class="sfc-subtext">Ингредиенты, готовые для расчета меню и рецептов</p>
                         </div>
-                        <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-sm" id="sfc-btn-add-manual-product">
+                        <button type="button" class="sfc-btn-secondary sfc-btn-sm" id="sfc-btn-add-manual-product">
                             <span class="material-symbols-outlined">add</span>
-                            <span>Добавить вручную</span>
+                            <span>Добавить продукт</span>
                         </button>
                     </div>
 
-                    
                     <div id="sfc-products-empty" class="sfc-empty-placeholder">
-                        <span class="material-symbols-outlined sfc-empty-icon">kitchen</span>
-                        <h3>Холодильник пуст</h3>
-                        <p>Загрузите фотографию или введите продукты списком, чтобы сформировать меню.</p>
+                        <div class="sfc-empty-icon-circle">
+                            <span class="material-symbols-outlined sfc-empty-icon">kitchen</span>
+                        </div>
+                        <h3>Холодильник пока пуст</h3>
+                        <p>Загрузите фото продуктов или добавьте список, чтобы шеф подобрал блюда и составил недельный рацион.</p>
                     </div>
 
-                    
                     <div id="sfc-products-list-wrapper" style="display: none;">
-                        <div class="sfc-table-container">
-                            <table class="sfc-data-table" id="sfc-products-table">
-                                <thead>
-                                    <tr>
-                                        <th>Продукт</th>
-                                        <th>Количество</th>
-                                        <th>Категория</th>
-                                        <th>Хранение</th>
-                                        <th style="width: 40px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="sfc-products-tbody">
-                                    
-                                </tbody>
-                            </table>
+                        <div class="sfc-pantry-board" id="sfc-products-board">
+                            <!-- Categorized pantry cards rendered by JS -->
                         </div>
+                        <table id="sfc-products-table" style="display:none;"><tbody id="sfc-products-tbody"></tbody></table>
 
-                        
                         <div class="sfc-bottom-cta">
                             <div class="sfc-cta-info">
-                                <strong>Список готов</strong>
-                                <span>Шеф подберет рецепты и составит недельное меню</span>
+                                <span class="material-symbols-outlined sfc-cta-icon">check_circle</span>
+                                <div>
+                                    <strong>Ингредиенты готовы</strong>
+                                    <span>Шеф подберет блюда из наличия и сформирует меню</span>
+                                </div>
                             </div>
-                            <button type="button" class="sfc-btn-m3 sfc-btn-primary sfc-btn-lg" id="sfc-btn-start-cook">
+                            <button type="button" class="sfc-btn-primary sfc-btn-lg" id="sfc-btn-start-cook">
                                 <span>Рассчитать меню</span>
                                 <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
@@ -214,116 +198,109 @@ if ( ! defined( 'ABSPATH' ) ) {
         <section id="tab-recipes" class="sfc-view">
             <div class="sfc-view-header">
                 <div>
-                    <h2>Что можно приготовить</h2>
-                    <p class="sfc-subtext">Блюда, сформированные на основе продуктов вашего холодильника</p>
+                    <h2>Что приготовить</h2>
+                    <p class="sfc-subtext">Аппетитные блюда, рассчитанные на основе продуктов из вашего холодильника</p>
                 </div>
-                <div class="sfc-filter-buttons" id="sfc-recipe-filters">
-                    <button type="button" class="sfc-filter-btn active" data-filter="all">Все рецепты</button>
-                    <button type="button" class="sfc-filter-btn" data-filter="ready">Из того, что есть</button>
-                    <button type="button" class="sfc-filter-btn" data-filter="need_more">С быстрой докупкой</button>
+                <div class="sfc-filter-pills" id="sfc-recipe-filters">
+                    <button type="button" class="sfc-filter-pill active" data-filter="all">Все блюда</button>
+                    <button type="button" class="sfc-filter-pill" data-filter="ready">Из того, что есть</button>
+                    <button type="button" class="sfc-filter-pill" data-filter="need_more">С докупкой продуктов</button>
                 </div>
             </div>
 
-            
             <div class="sfc-recipe-grid" id="sfc-recipes-container">
-                
+                <!-- Recipe cards rendered by JS -->
             </div>
         </section>
 
-        
         <section id="tab-plan" class="sfc-view">
             <div class="sfc-view-header sfc-flex-between">
                 <div>
                     <h2>План питания на 7 дней</h2>
-                    <p class="sfc-subtext">Сбалансированное меню с возможностью индивидуальной замены блюд</p>
+                    <p class="sfc-subtext">Сбалансированное недельное меню с возможностью индивидуальной замены любого блюда</p>
                 </div>
-                <div class="sfc-header-button-group">
-                    <button type="button" class="sfc-btn-m3 sfc-btn-outlined" id="sfc-btn-save-plan">
-                        <span class="material-symbols-outlined">bookmark_add</span>
-                        <span>Сохранить план</span>
+                <div class="sfc-header-actions">
+                    <button type="button" class="sfc-btn-secondary" id="sfc-btn-save-plan">
+                        <span class="material-symbols-outlined">bookmark_border</span>
+                        <span>Сохранить меню</span>
                     </button>
-                    <button type="button" class="sfc-btn-m3 sfc-btn-outlined" onclick="window.print()">
+                    <button type="button" class="sfc-btn-secondary" onclick="window.print()">
                         <span class="material-symbols-outlined">print</span>
                         <span>Печать</span>
                     </button>
                 </div>
             </div>
 
-            
             <div class="sfc-calendar-strip" id="sfc-days-nav">
-                
+                <!-- Day buttons rendered by JS -->
             </div>
 
-            
             <div id="sfc-day-view-container">
-                
+                <!-- Day meals slots rendered by JS -->
             </div>
         </section>
 
-        
         <section id="tab-shopping" class="sfc-view">
             <div class="sfc-view-header sfc-flex-between">
                 <div>
                     <h2>Список покупок</h2>
                     <p class="sfc-subtext">Продукты, необходимые для меню на неделю за вычетом содержимого холодильника</p>
                 </div>
-                <button type="button" class="sfc-btn-m3 sfc-btn-primary" id="sfc-btn-go-to-stores">
+                <button type="button" class="sfc-btn-primary" id="sfc-btn-go-to-stores">
                     <span class="material-symbols-outlined">storefront</span>
                     <span>Найти магазины рядом</span>
                 </button>
             </div>
 
             <div class="sfc-shopping-layout">
-                
                 <div class="sfc-panel sfc-checklist-panel">
                     <div class="sfc-checklist-toolbar">
-                        <span>Осталось купить: <strong id="sfc-shopping-remaining-count">0</strong></span>
-                        <button type="button" class="sfc-btn-m3 sfc-btn-text sfc-btn-sm" id="sfc-btn-check-all">
+                        <div class="sfc-remaining-badge">
+                            Осталось купить: <strong id="sfc-shopping-remaining-count">0</strong>
+                        </div>
+                        <button type="button" class="sfc-btn-subtle sfc-btn-sm" id="sfc-btn-check-all">
                             Отметить все
                         </button>
                     </div>
                     <div id="sfc-grouped-shopping-container">
-                        
+                        <!-- Grouped shopping list rendered by JS -->
                     </div>
                 </div>
 
-                
                 <div class="sfc-panel sfc-sidebar-panel">
                     <div class="sfc-sidebar-card">
                         <div class="sfc-sidebar-card-title">
-                            <span class="material-symbols-outlined">lightbulb</span>
-                            <span>Оптимизация закупок</span>
+                            <span class="material-symbols-outlined">tips_and_updates</span>
+                            <span>Где купить выгодно</span>
                         </div>
                         <p class="sfc-sidebar-desc" id="sfc-quick-store-teaser">
-                            Шеф сравнивает ассортимент ближайших магазинов под ваш список...
+                            Шеф сравнивает ассортимент ближайших супермаркетов под ваш список...
                         </p>
-                        <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-block" id="sfc-btn-open-map-teaser">
-                            Посмотреть супермаркеты
+                        <button type="button" class="sfc-btn-secondary sfc-btn-block" id="sfc-btn-open-map-teaser">
+                            Открыть карту магазинов
                         </button>
                     </div>
 
                     <div class="sfc-sidebar-hints">
-                        <h4>Рекомендации по закупкам:</h4>
+                        <h4>Кулинарные советы шефа:</h4>
                         <ul>
-                            <li><strong>Свежие овощи и зелень:</strong> покупайте в начале недели порционно на 2-3 дня.</li>
-                            <li><strong>Базовые крупы и макароны:</strong> берите стандартные упаковки в экономичных супермаркетах.</li>
-                            <li><strong>Охлажденное мясо и рыба:</strong> проверяйте дату фасовки и температурный режим витрины.</li>
+                            <li><strong>Свежие овощи и зелень:</strong> покупайте порционно на 2-3 дня вперед.</li>
+                            <li><strong>Крупы и бакалея:</strong> стандартные упаковки выгоднее брать в экономичных супермаркетах.</li>
+                            <li><strong>Мясо и птица:</strong> проверяйте дату фасовки и храните в нулевой зоне холодильника.</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        
         <section id="tab-stores" class="sfc-view">
             <div class="sfc-view-header">
                 <div>
-                    <h2>Поиск магазинов и рекомендации ИИ</h2>
-                    <p class="sfc-subtext">Поиск реальных супермаркетов рядом с вами и анализ ассортимента под ваш список покупок</p>
+                    <h2>Магазины рядом и закупки</h2>
+                    <p class="sfc-subtext">Супермаркеты рядом с вами и выбор оптимального магазина под ваш список покупок</p>
                 </div>
             </div>
 
-            
             <div id="sfc-location-prompt" class="sfc-location-banner" style="display: none;">
                 <div class="sfc-location-banner-icon">
                     <span class="material-symbols-outlined">near_me</span>
@@ -332,20 +309,19 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <h3>Определите ваше местоположение</h3>
                     <p>Шеф найдет супермаркеты именно рядом с вами. Разрешите доступ к геопозиции или укажите ваш город ниже.</p>
                 </div>
-                <button type="button" class="sfc-btn-m3 sfc-btn-primary" id="sfc-btn-prompt-geolocate">
+                <button type="button" class="sfc-btn-primary" id="sfc-btn-prompt-geolocate">
                     <span class="material-symbols-outlined">my_location</span>
                     <span>Поделиться местоположением</span>
                 </button>
             </div>
 
-            
             <div id="sfc-recommendation-hero" class="sfc-rec-card" style="display: none;">
                 <div class="sfc-rec-card-header">
                     <div class="sfc-rec-badge">
                         <span class="material-symbols-outlined">verified</span>
-                        <span>Рекомендация ИИ под ваш список покупок</span>
+                        <span>Рекомендация шефа: оптимальный супермаркет</span>
                     </div>
-                    <span class="sfc-rec-engine-tag" id="sfc-rec-engine-label">ИИ Анализ</span>
+                    <span class="sfc-rec-engine-tag" id="sfc-rec-engine-label">Оптимальный выбор</span>
                 </div>
 
                 <div class="sfc-rec-content">
@@ -362,16 +338,16 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </div>
 
                         <div class="sfc-rec-tips-box" id="sfc-rec-tips">
-                            
+                            <!-- Tips -->
                         </div>
                     </div>
 
                     <div class="sfc-rec-actions">
-                        <a id="sfc-rec-route-yandex" href="#" target="_blank" class="sfc-btn-m3 sfc-btn-primary">
+                        <a id="sfc-rec-route-yandex" href="#" target="_blank" class="sfc-btn-primary">
                             <span class="material-symbols-outlined">navigation</span>
                             <span>Яндекс Карты</span>
                         </a>
-                        <a id="sfc-rec-route-google" href="#" target="_blank" class="sfc-btn-m3 sfc-btn-outlined">
+                        <a id="sfc-rec-route-google" href="#" target="_blank" class="sfc-btn-secondary">
                             <span class="material-symbols-outlined">map</span>
                             <span>Google Карты</span>
                         </a>
@@ -379,9 +355,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
 
-            
             <div class="sfc-maps-layout">
-                
                 <div class="sfc-panel sfc-map-wrapper">
                     <div class="sfc-map-searchbar">
                         <div class="sfc-search-input-box">
@@ -391,7 +365,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
                         </div>
-                        <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-sm" id="sfc-btn-geolocate">
+                        <button type="button" class="sfc-btn-secondary sfc-btn-sm" id="sfc-btn-geolocate">
                             <span class="material-symbols-outlined">my_location</span>
                             <span>Мое местоположение</span>
                         </button>
@@ -399,14 +373,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div id="sfc-map" class="sfc-leaflet-map"></div>
                 </div>
 
-                
                 <div class="sfc-panel sfc-places-wrapper">
                     <div class="sfc-panel-header">
-                        <h3>Магазины рядом</h3>
+                        <h3>Магазины на карте</h3>
                         <p class="sfc-subtext" id="sfc-stores-subtitle">Нажмите на магазин для просмотра на карте</p>
                     </div>
                     <div class="sfc-places-list" id="sfc-stores-list">
-                        
+                        <!-- Store cards rendered by JS -->
                     </div>
                 </div>
             </div>
@@ -414,22 +387,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     </main>
 
-    
     <div id="sfc-recipe-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet">
-            <button type="button" class="sfc-modal-close" id="sfc-modal-close-btn">
+            <button type="button" class="sfc-modal-close" id="sfc-modal-close-btn" aria-label="Закрыть">
                 <span class="material-symbols-outlined">close</span>
             </button>
             <div id="sfc-modal-content">
-                
+                <!-- Modal content -->
             </div>
         </div>
     </div>
 
-    
     <div id="sfc-swap-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet">
-            <button type="button" class="sfc-modal-close" id="sfc-swap-modal-close">
+            <button type="button" class="sfc-modal-close" id="sfc-swap-modal-close" aria-label="Закрыть">
                 <span class="material-symbols-outlined">close</span>
             </button>
             <div class="sfc-modal-title">
@@ -437,32 +408,32 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p class="sfc-subtext" id="sfc-swap-modal-subtitle">Выберите подходящее блюдо из продуктов в наличии или с докупкой</p>
             </div>
             <div id="sfc-swap-list" class="sfc-swap-options-list">
-                
+                <!-- Options list -->
             </div>
         </div>
     </div>
 
-    
     <div id="sfc-add-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet sfc-modal-compact">
-            <button type="button" class="sfc-modal-close" id="sfc-add-modal-close">
+            <button type="button" class="sfc-modal-close" id="sfc-add-modal-close" aria-label="Закрыть">
                 <span class="material-symbols-outlined">close</span>
             </button>
             <div class="sfc-modal-title">
-                <h3>Добавить продукт</h3>
+                <h3>Добавить продукт на полку</h3>
+                <p class="sfc-subtext">Укажите наименование и количество</p>
             </div>
-            <form id="sfc-manual-add-form" class="sfc-form-m3">
+            <form id="sfc-manual-add-form" class="sfc-form-styled">
                 <div class="sfc-form-field">
                     <label for="sfc-add-name">Название продукта</label>
-                    <input type="text" id="sfc-add-name" required placeholder="Например: Творог 5%" />
+                    <input type="text" id="sfc-add-name" required placeholder="Например: Творог 5% или Сыр пармезан" />
                 </div>
                 <div class="sfc-form-field">
-                    <label for="sfc-add-qty">Количество</label>
-                    <input type="text" id="sfc-add-qty" placeholder="Например: 200 г, 1 пачка" value="1 шт" />
+                    <label for="sfc-add-qty">Количество / вес</label>
+                    <input type="text" id="sfc-add-qty" placeholder="Например: 200 г, 1 упаковка" value="1 шт" />
                 </div>
                 <div class="sfc-modal-actions">
-                    <button type="button" class="sfc-btn-m3 sfc-btn-text" onclick="document.getElementById('sfc-add-modal').style.display='none';">Отмена</button>
-                    <button type="submit" class="sfc-btn-m3 sfc-btn-primary">Добавить в инвентарь</button>
+                    <button type="button" class="sfc-btn-subtle" onclick="document.getElementById('sfc-add-modal').style.display='none';">Отмена</button>
+                    <button type="submit" class="sfc-btn-primary">Сохранить</button>
                 </div>
             </form>
         </div>

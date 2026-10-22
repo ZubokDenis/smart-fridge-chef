@@ -51,14 +51,15 @@
             productsEmpty: document.getElementById('sfc-products-empty'),
             productsListWrapper: document.getElementById('sfc-products-list-wrapper'),
             productsTbody: document.getElementById('sfc-products-tbody'),
+            productsBoard: document.getElementById('sfc-products-board'),
             btnAddManualProduct: document.getElementById('sfc-btn-add-manual-product'),
             btnStartCook: document.getElementById('sfc-btn-start-cook'),
-            presetButtons: document.querySelectorAll('.sfc-btn-subtle'),
+            presetButtons: document.querySelectorAll('.sfc-btn-subtle, .sfc-preset-chip'),
             btnDemo: document.getElementById('sfc-btn-demo'),
             btnReset: document.getElementById('sfc-btn-reset'),
 
             recipesContainer: document.getElementById('sfc-recipes-container'),
-            recipeFilters: document.querySelectorAll('.sfc-filter-btn'),
+            recipeFilters: document.querySelectorAll('.sfc-filter-btn, .sfc-filter-pill'),
 
             daysNav: document.getElementById('sfc-days-nav'),
             dayViewContainer: document.getElementById('sfc-day-view-container'),
@@ -132,23 +133,20 @@
     });
 
     function loadAIStatus() {
-        if (!dom.aiStatusText) return;
-        dom.aiStatusText.textContent = 'ИИ: ' + (sfcConfig.aiLabel || 'Подключение...');
-
         fetch(sfcConfig.restUrl + 'ai-status')
             .then(r => r.json())
             .then(data => {
                 if (data.success && data.label) {
                     state.aiStatus = data;
-                    dom.aiStatusText.textContent = 'ИИ: ' + data.label;
+                    if (dom.aiStatusText) dom.aiStatusText.textContent = data.label;
+                    const statusBadge = document.getElementById('sfc-ai-status-badge');
+                    if (statusBadge) statusBadge.title = 'Движок рецептов: ' + data.label;
                     if (dom.recEngineLabel) {
-                        dom.recEngineLabel.textContent = data.label;
+                        dom.recEngineLabel.textContent = 'Оптимальный выбор';
                     }
                 }
             })
-            .catch(() => {
-                dom.aiStatusText.textContent = 'ИИ: ' + (sfcConfig.aiLabel || 'Активен');
-            });
+            .catch(() => {});
     }
 
     function bindEvents() {
@@ -326,7 +324,7 @@
                 dom.previewImg.src = webpDataUrl;
                 dom.dropzone.style.display = 'none';
                 dom.previewWrapper.style.display = 'block';
-                dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>ИИ анализирует снимок и подбирает рецепты...</span>';
+                dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Определение продуктов и подбор рецептов...</span>';
 
                 sendAnalyzeRequest({
                     type: 'photo',
@@ -361,14 +359,14 @@
                 saveProductsState();
                 renderProducts();
                 if (dom.scanStatusText) {
-                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined" style="color:#137333;">check_circle</span> <span>Распознано продуктов: ${data.products.length}. Подбор меню...</span>`;
+                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined sfc-scan-success">check_circle</span> <span>Определено продуктов: ${data.products.length}. Подбор меню...</span>`;
                 }
 
                 if (autoGenerateAfter) {
                     generateRecipesAndPlan();
                 }
             } else {
-                alert('Не удалось распознать продукты. Проверьте настройки Ollama/Claude или введите список текстом.');
+                alert('Не удалось распознать продукты. Проверьте подключение или введите список текстом.');
             }
         })
         .catch(err => {
@@ -388,42 +386,107 @@
 
         dom.productsEmpty.style.display = 'none';
         dom.productsListWrapper.style.display = 'block';
-        dom.productsTbody.innerHTML = '';
 
-        state.products.forEach((prod, index) => {
-            const tr = document.createElement('tr');
+        if (dom.productsBoard) {
+            dom.productsBoard.innerHTML = '';
 
-            const freshnessText = prod.perishable ? 'Скоропортящийся' : 'Длительное хранение';
-            const iconName = prod.icon || 'inventory_2';
+            const groups = {};
+            state.products.forEach((prod, index) => {
+                const cat = prod.category || 'Другое';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push({ prod, index });
+            });
 
-            tr.innerHTML = `
-                <td>
-                    <div class="sfc-item-cell">
-                        <span class="material-symbols-outlined sfc-item-icon">${iconName}</span>
-                        <span>${escapeHtml(prod.name)}</span>
+            const catIcons = {
+                'Овощи и зелень': 'eco',
+                'Фрукты и ягоды': 'nutrition',
+                'Молочные продукты': 'egg',
+                'Сыры': 'restaurant',
+                'Мясо и птица': 'restaurant_menu',
+                'Рыба и морепродукты': 'set_meal',
+                'Бакалея и крупы': 'grain',
+                'Бакалея и продукты': 'grain',
+                'Хлеб и выпечка': 'bakery_dining',
+                'Соусы и приправы': 'soup_kitchen',
+                'Другое': 'kitchen'
+            };
+
+            for (const [category, items] of Object.entries(groups)) {
+                const shelf = document.createElement('div');
+                shelf.className = 'sfc-pantry-shelf';
+
+                const shelfIcon = catIcons[category] || 'kitchen';
+
+                let itemsHtml = '';
+                items.forEach(({ prod, index }) => {
+                    const iconName = prod.icon || shelfIcon;
+                    const freshClass = prod.perishable ? 'is-fresh' : 'is-stable';
+                    const freshLabel = prod.perishable ? 'Свежее' : 'Хранение';
+
+                    itemsHtml += `
+                        <div class="sfc-pantry-card">
+                            <div class="sfc-pantry-card-icon">
+                                <span class="material-symbols-outlined">${iconName}</span>
+                            </div>
+                            <div class="sfc-pantry-card-info">
+                                <span class="sfc-pantry-card-name">${escapeHtml(prod.name)}</span>
+                                <div class="sfc-pantry-card-meta">
+                                    <span class="sfc-pantry-card-qty">${escapeHtml(prod.quantity || '1 шт')}</span>
+                                    <span class="sfc-pantry-card-freshness ${freshClass}">• ${freshLabel}</span>
+                                </div>
+                            </div>
+                            <button type="button" class="sfc-pantry-card-remove btn-delete-prod" data-index="${index}" title="Убрать из холодильника" aria-label="Удалить">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                shelf.innerHTML = `
+                    <div class="sfc-pantry-shelf-header">
+                        <span class="material-symbols-outlined sfc-shelf-header-icon">${shelfIcon}</span>
+                        <h3 class="sfc-pantry-shelf-title">${escapeHtml(category)}</h3>
+                        <span class="sfc-pantry-shelf-count">${items.length}</span>
                     </div>
-                </td>
-                <td>
-                    <span class="sfc-qty-tag">${escapeHtml(prod.quantity || '1 шт')}</span>
-                </td>
-                <td>
-                    <span style="color:#5f6368;">${escapeHtml(prod.category || 'Другое')}</span>
-                </td>
-                <td>
-                    <span class="sfc-fresh-tag">${freshnessText}</span>
-                </td>
-                <td style="text-align: right;">
-                    <button type="button" class="sfc-btn-icon btn-delete-prod" data-index="${index}" title="Удалить">
-                        <span class="material-symbols-outlined" style="font-size:18px; color:#d93025;">delete</span>
-                    </button>
-                </td>
-            `;
+                    <div class="sfc-pantry-shelf-grid">
+                        ${itemsHtml}
+                    </div>
+                `;
 
-            dom.productsTbody.appendChild(tr);
-        });
+                dom.productsBoard.appendChild(shelf);
+            }
+        }
+
+        if (dom.productsTbody) {
+            dom.productsTbody.innerHTML = '';
+            state.products.forEach((prod, index) => {
+                const tr = document.createElement('tr');
+                const freshnessText = prod.perishable ? 'Свежее' : 'Хранение';
+                const iconName = prod.icon || 'kitchen';
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="sfc-item-cell">
+                            <span class="material-symbols-outlined sfc-item-icon">${iconName}</span>
+                            <span>${escapeHtml(prod.name)}</span>
+                        </div>
+                    </td>
+                    <td><span class="sfc-qty-tag">${escapeHtml(prod.quantity || '1 шт')}</span></td>
+                    <td><span>${escapeHtml(prod.category || 'Другое')}</span></td>
+                    <td><span class="sfc-fresh-tag">${freshnessText}</span></td>
+                    <td style="text-align: right;">
+                        <button type="button" class="sfc-btn-icon-subtle btn-delete-prod" data-index="${index}" title="Удалить">
+                            <span class="material-symbols-outlined">delete_outline</span>
+                        </button>
+                    </td>
+                `;
+                dom.productsTbody.appendChild(tr);
+            });
+        }
 
         document.querySelectorAll('.btn-delete-prod').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const idx = parseInt(btn.dataset.index, 10);
                 state.products.splice(idx, 1);
                 saveProductsState();
@@ -485,7 +548,7 @@
             return;
         }
 
-        dom.btnStartCook.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>ИИ рассчитывает меню...</span>';
+        dom.btnStartCook.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Составление меню и рецептов...</span>';
         dom.btnStartCook.disabled = true;
 
         fetch(sfcConfig.restUrl + 'generate-recipes', {
@@ -526,7 +589,7 @@
         })
         .catch(err => {
             console.error('Error generating:', err);
-            alert('Ошибка при генерации меню.');
+            alert('Ошибка при составлении меню.');
         })
         .finally(() => {
             dom.btnStartCook.innerHTML = '<span>Рассчитать меню</span> <span class="material-symbols-outlined">arrow_forward</span>';
@@ -538,44 +601,72 @@
         dom.recipesContainer.innerHTML = '';
 
         if (!recipes || recipes.length === 0) {
-            dom.recipesContainer.innerHTML = '<div class="sfc-empty-placeholder"><p>Подходящих рецептов не найдено. Добавьте больше продуктов.</p></div>';
+            dom.recipesContainer.innerHTML = `
+                <div class="sfc-empty-placeholder" style="grid-column: 1 / -1; padding: 48px 16px;">
+                    <div class="sfc-empty-icon-circle">
+                        <span class="material-symbols-outlined sfc-empty-icon">menu_book</span>
+                    </div>
+                    <h3>Подходящих рецептов не найдено</h3>
+                    <p class="sfc-subtext">Добавьте базовые продукты (яйца, овощи, сыр, молоко, крупы), чтобы шеф составил меню.</p>
+                </div>
+            `;
             return;
         }
 
         recipes.forEach(recipe => {
-            const card = document.createElement('div');
-            card.className = 'sfc-feed-card';
+            const card = document.createElement('article');
+            card.className = 'sfc-recipe-card';
 
             const isReady = recipe.can_cook_now;
-            const availabilityHtml = isReady
-                ? `<div class="sfc-recipe-availability ready"><span class="material-symbols-outlined" style="font-size:16px;">check_circle</span> <span>100% из вашего холодильника</span></div>`
-                : `<div class="sfc-recipe-availability shop"><span class="material-symbols-outlined" style="font-size:16px;">shopping_bag</span> <span>Докупить: <strong>${escapeHtml((recipe.missing_ingredients || []).join(', '))}</strong></span></div>`;
+            const missingCount = (recipe.missing_ingredients || []).length;
+            const badgeHtml = isReady
+                ? `<div class="sfc-recipe-floating-badge is-ready"><span class="material-symbols-outlined">check_circle</span><span>Все продукты есть</span></div>`
+                : `<div class="sfc-recipe-floating-badge is-shop"><span class="material-symbols-outlined">shopping_basket</span><span>Докупить: ${missingCount} прод.</span></div>`;
 
             let ingHtml = '';
-            (recipe.ingredients_status || []).slice(0, 5).forEach(ing => {
-                const mark = ing.available ? '•' : '+';
-                ingHtml += `<span style="margin-right:6px;">${mark} ${escapeHtml(ing.name)}</span>`;
+            (recipe.ingredients_status || []).slice(0, 4).forEach(ing => {
+                const mark = ing.available
+                    ? '<span class="material-symbols-outlined sfc-ing-mark-avail">check</span>'
+                    : '<span class="material-symbols-outlined sfc-ing-mark-miss">add</span>';
+                const cls = ing.available ? 'is-available' : 'is-missing';
+                ingHtml += `<span class="sfc-recipe-ing-chip ${cls}">${mark} ${escapeHtml(ing.name)}</span>`;
             });
+            if ((recipe.ingredients_status || []).length > 4) {
+                const rem = recipe.ingredients_status.length - 4;
+                ingHtml += `<span class="sfc-recipe-ing-chip is-more">+${rem}</span>`;
+            }
 
             card.innerHTML = `
-                <div class="sfc-feed-img-box">
+                <div class="sfc-recipe-cover">
                     <img src="${recipe.image}" alt="${escapeHtml(recipe.title)}" loading="lazy" />
-                </div>
-                <div class="sfc-feed-body">
-                    <span class="sfc-recipe-category">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
-                    <h3 class="sfc-feed-title">${escapeHtml(recipe.title)}</h3>
-                    <div class="sfc-feed-meta">
-                        <span><span class="material-symbols-outlined" style="font-size:15px;">schedule</span> ${recipe.time_mins} мин</span>
-                        <span><span class="material-symbols-outlined" style="font-size:15px;">local_fire_department</span> ${recipe.calories} ккал</span>
+                    <div class="sfc-recipe-cover-gradient"></div>
+                    ${badgeHtml}
+                    <div class="sfc-recipe-floating-time">
+                        <span class="material-symbols-outlined">schedule</span>
+                        <span>${recipe.time_mins} мин</span>
                     </div>
-                    ${availabilityHtml}
-                    <div class="sfc-feed-ingredients">
+                </div>
+                <div class="sfc-recipe-content">
+                    <div class="sfc-recipe-top-meta">
+                        <span class="sfc-recipe-type-tag">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
+                        <span class="sfc-recipe-calories">${recipe.calories} ккал</span>
+                    </div>
+                    <h3 class="sfc-recipe-title">${escapeHtml(recipe.title)}</h3>
+                    <p class="sfc-recipe-desc">${escapeHtml(recipe.description || '')}</p>
+                    
+                    <div class="sfc-recipe-ingredients-preview">
                         ${ingHtml}
                     </div>
-                    <div class="sfc-feed-footer">
-                        <span class="sfc-feed-macros">Б: ${recipe.protein}г • Ж: ${recipe.fat}г • У: ${recipe.carbs}г</span>
-                        <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-sm btn-view-recipe">
-                            Рецепт
+
+                    <div class="sfc-recipe-footer">
+                        <div class="sfc-recipe-macros">
+                            <span>Б: <strong>${recipe.protein}г</strong></span>
+                            <span>Ж: <strong>${recipe.fat}г</strong></span>
+                            <span>У: <strong>${recipe.carbs}г</strong></span>
+                        </div>
+                        <button type="button" class="sfc-btn-secondary sfc-btn-sm btn-view-recipe">
+                            <span>Рецепт</span>
+                            <span class="material-symbols-outlined">arrow_forward</span>
                         </button>
                     </div>
                 </div>
@@ -603,60 +694,87 @@
         let ingHtml = '';
         (recipe.ingredients_status || []).forEach(ing => {
             const mark = ing.available
-                ? '<span class="material-symbols-outlined" style="color:#137333; font-size:18px;">check_circle</span>'
-                : '<span class="material-symbols-outlined" style="color:#b06000; font-size:18px;">shopping_basket</span>';
+                ? '<span class="material-symbols-outlined sfc-modal-ing-check">check_circle</span>'
+                : '<span class="material-symbols-outlined sfc-modal-ing-shop">shopping_basket</span>';
             const statusLabel = ing.available
-                ? '<span style="color:#137333; font-size:12px; margin-left:6px; font-weight:500;">в наличии</span>'
-                : '<span style="color:#b06000; font-size:12px; margin-left:6px; font-weight:500;">нужно докупить</span>';
+                ? '<span class="sfc-modal-ing-tag ready">в наличии</span>'
+                : '<span class="sfc-modal-ing-tag shop">нужно докупить</span>';
 
-            ingHtml += `<li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #e8eaed;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    ${mark}
-                    <span>${escapeHtml(ing.name)}</span>
-                    ${statusLabel}
-                </div>
-                <span style="color:#5f6368; font-size:13px;">${escapeHtml(ing.amount)}</span>
-            </li>`;
+            ingHtml += `
+                <li class="sfc-modal-ing-item">
+                    <div class="sfc-modal-ing-left">
+                        ${mark}
+                        <span class="sfc-modal-ing-name">${escapeHtml(ing.name)}</span>
+                        ${statusLabel}
+                    </div>
+                    <span class="sfc-modal-ing-qty">${escapeHtml(ing.amount)}</span>
+                </li>
+            `;
         });
 
         let stepHtml = '';
         (recipe.instructions || []).forEach((step, idx) => {
-            stepHtml += `<li style="margin-bottom:12px; line-height:1.55; color:#202124;">
-                <strong style="color:#1a73e8;">Шаг ${idx + 1}:</strong> ${escapeHtml(step)}
-            </li>`;
+            const num = (idx + 1).toString().padStart(2, '0');
+            stepHtml += `
+                <li class="sfc-modal-step-item">
+                    <span class="sfc-modal-step-num">${num}</span>
+                    <p class="sfc-modal-step-text">${escapeHtml(step)}</p>
+                </li>
+            `;
         });
 
         dom.modalContent.innerHTML = `
-            <div style="margin-bottom: 20px;">
-                <span class="sfc-recipe-category" style="margin-bottom: 6px; display:inline-block;">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
-                <h2 class="sfc-recipe-sheet-title" style="margin: 4px 0 8px; font-size: 22px; font-weight:700;">${escapeHtml(recipe.title)}</h2>
-                <p style="color: #5f6368; font-size: 14px; margin:0 0 16px;">${escapeHtml(recipe.description || '')}</p>
-                <div style="display:flex; gap:16px; background:#f8f9fa; border:1px solid #dadce0; border-radius:6px; padding:10px 14px; font-size:13px; font-weight:500;">
-                    <span>Время: <strong>${recipe.time_mins} мин</strong></span>
-                    <span>Калории: <strong>${recipe.calories} ккал</strong></span>
-                    <span>Б: <strong>${recipe.protein}г</strong></span>
-                    <span>Ж: <strong>${recipe.fat}г</strong></span>
-                    <span>У: <strong>${recipe.carbs}г</strong></span>
+            <div class="sfc-modal-recipe-header">
+                <span class="sfc-recipe-type-tag">${escapeHtml(recipe.meal_type || 'Блюдо')}</span>
+                <h2 class="sfc-modal-recipe-title">${escapeHtml(recipe.title)}</h2>
+                <p class="sfc-modal-recipe-desc">${escapeHtml(recipe.description || '')}</p>
+                <div class="sfc-modal-nutrition-strip">
+                    <div class="sfc-modal-nut-item">
+                        <span class="nut-label">Время</span>
+                        <span class="nut-val">${recipe.time_mins} мин</span>
+                    </div>
+                    <div class="sfc-modal-nut-item">
+                        <span class="nut-label">Калории</span>
+                        <span class="nut-val">${recipe.calories} ккал</span>
+                    </div>
+                    <div class="sfc-modal-nut-item">
+                        <span class="nut-label">Белки</span>
+                        <span class="nut-val">${recipe.protein}г</span>
+                    </div>
+                    <div class="sfc-modal-nut-item">
+                        <span class="nut-label">Жиры</span>
+                        <span class="nut-val">${recipe.fat}г</span>
+                    </div>
+                    <div class="sfc-modal-nut-item">
+                        <span class="nut-label">Углеводы</span>
+                        <span class="nut-val">${recipe.carbs}г</span>
+                    </div>
                 </div>
             </div>
 
-            <div style="margin-bottom: 22px;">
-                <h3 style="font-size: 16px; margin: 0 0 8px; color:#202124; font-family:'Lora',serif;">Необходимые ингредиенты</h3>
-                <ul style="list-style:none; padding:0; margin:0;">
+            <div class="sfc-modal-section">
+                <h3 class="sfc-modal-section-title">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    <span>Необходимые ингредиенты</span>
+                </h3>
+                <ul class="sfc-modal-ingredients-list">
                     ${ingHtml}
                 </ul>
             </div>
 
-            <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 16px; margin: 0 0 10px; color:#202124; font-family:'Lora',serif;">Инструкция приготовления</h3>
-                <ol style="padding-left: 20px; margin:0;">
+            <div class="sfc-modal-section">
+                <h3 class="sfc-modal-section-title">
+                    <span class="material-symbols-outlined">soup_kitchen</span>
+                    <span>Пошаговое приготовление</span>
+                </h3>
+                <ol class="sfc-modal-steps-list">
                     ${stepHtml}
                 </ol>
             </div>
 
-            <div style="display:flex; justify-content:flex-end;">
-                <button type="button" class="sfc-btn-m3 sfc-btn-primary" onclick="document.getElementById('sfc-recipe-modal').style.display='none';">
-                    Закрыть
+            <div class="sfc-modal-bottom-actions">
+                <button type="button" class="sfc-btn-primary" onclick="document.getElementById('sfc-recipe-modal').style.display='none';">
+                    Понятно, готовить!
                 </button>
             </div>
         `;
@@ -689,8 +807,10 @@
 
         dom.dayViewContainer.innerHTML = `
             <div class="sfc-day-strategy-notice">
-                <span class="material-symbols-outlined" style="color:#1a73e8;">tips_and_updates</span>
-                <span><strong>Фокус дня:</strong> ${escapeHtml(activeDay.focus)}</span>
+                <span class="material-symbols-outlined sfc-strategy-icon">tips_and_updates</span>
+                <div class="sfc-strategy-text">
+                    <strong>Фокус дня:</strong> ${escapeHtml(activeDay.focus)}
+                </div>
             </div>
 
             <div class="sfc-day-slots-grid">
@@ -700,15 +820,15 @@
                 ${renderMealSlot(state.activeDayIndex, 'Перекус', 'snack', meals.snack)}
             </div>
 
-            <div style="margin-top:16px; background:#ffffff; border:1px solid #dadce0; border-radius:6px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:13px;">
-                <div>
-                    <strong>Итого за день:</strong>
-                    <span style="margin-left:8px; color:#5f6368;">${activeDay.nutrition.calories} ккал</span>
+            <div class="sfc-day-nutrition-summary">
+                <div class="sfc-day-cals-total">
+                    <span class="sfc-day-nut-label">Итого за день:</span>
+                    <strong class="sfc-day-nut-val">${activeDay.nutrition.calories} ккал</strong>
                 </div>
-                <div style="display:flex; gap:16px; color:#5f6368;">
-                    <span>Белки: <strong style="color:#202124;">${activeDay.nutrition.protein}г</strong></span>
-                    <span>Жиры: <strong style="color:#202124;">${activeDay.nutrition.fat}г</strong></span>
-                    <span>Углеводы: <strong style="color:#202124;">${activeDay.nutrition.carbs}г</strong></span>
+                <div class="sfc-day-macros-total">
+                    <span>Белки: <strong>${activeDay.nutrition.protein}г</strong></span>
+                    <span>Жиры: <strong>${activeDay.nutrition.fat}г</strong></span>
+                    <span>Углеводы: <strong>${activeDay.nutrition.carbs}г</strong></span>
                 </div>
             </div>
         `;
@@ -735,8 +855,8 @@
         if (!meal) return '';
         const isFromFridge = meal.can_cook_from_fridge !== undefined ? meal.can_cook_from_fridge : meal.can_cook_now;
         const statusHtml = isFromFridge
-            ? `<span class="sfc-slot-state ready"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Из холодильника</span>`
-            : `<span class="sfc-slot-state shop"><span class="material-symbols-outlined" style="font-size:13px;">shopping_bag</span> Докупить: ${(meal.missing_items || []).slice(0, 1).join(', ')}</span>`;
+            ? `<span class="sfc-slot-state ready"><span class="material-symbols-outlined">check_circle</span> Из холодильника</span>`
+            : `<span class="sfc-slot-state shop"><span class="material-symbols-outlined">shopping_basket</span> Докупить: ${(meal.missing_items || []).slice(0, 1).join(', ')}</span>`;
 
         return `
             <div class="sfc-slot-card">
@@ -745,17 +865,18 @@
                     ${statusHtml}
                 </div>
                 <div class="sfc-slot-img">
-                    <img src="${meal.image}" alt="${escapeHtml(meal.title)}" />
+                    <img src="${meal.image}" alt="${escapeHtml(meal.title)}" loading="lazy" />
                 </div>
-                <h4>${escapeHtml(meal.title)}</h4>
+                <h4 class="sfc-slot-title">${escapeHtml(meal.title)}</h4>
                 <div class="sfc-slot-meta">
-                    <span>${meal.time_mins} мин</span> • <span>${meal.calories} ккал</span>
+                    <span><span class="material-symbols-outlined">schedule</span> ${meal.time_mins} мин</span>
+                    <span><span class="material-symbols-outlined">local_fire_department</span> ${meal.calories} ккал</span>
                 </div>
                 <div class="sfc-slot-actions">
-                    <button type="button" class="sfc-btn-m3 sfc-btn-outlined sfc-btn-sm btn-open-slot-recipe" data-recipe-id="${meal.id}">
+                    <button type="button" class="sfc-btn-secondary sfc-btn-sm btn-open-slot-recipe" data-recipe-id="${meal.id}">
                         Рецепт
                     </button>
-                    <button type="button" class="sfc-btn-m3 sfc-btn-tonal sfc-btn-sm btn-swap-slot" data-day="${dayIndex}" data-slot="${slotKey}" data-type="${label}">
+                    <button type="button" class="sfc-btn-subtle sfc-btn-sm btn-swap-slot" data-day="${dayIndex}" data-slot="${slotKey}" data-type="${label}">
                         Заменить
                     </button>
                 </div>
@@ -766,7 +887,7 @@
     function openSwapModal(dayIndex, slotKey, mealType) {
         state.currentSwapSlot = { dayIndex, slotKey, mealType };
         dom.swapTitle.textContent = `Замена блюда: ${mealType} (${state.weeklyPlan[dayIndex].day_name})`;
-        dom.swapSubtitle.textContent = 'Выберите блюдо только из имеющихся продуктов или с докупкой';
+        dom.swapSubtitle.textContent = 'Выберите блюдо только из имеющихся продуктов или с быстрой докупкой';
         dom.swapList.innerHTML = '';
 
         let candidates = (state.recipesByType && state.recipesByType[mealType]) ? state.recipesByType[mealType] : [];
@@ -789,8 +910,8 @@
         uniqueCandidates.forEach(cand => {
             const isReady = cand.can_cook_now;
             const tag = isReady
-                ? '<span style="color:#137333; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px;">check</span> Только из холодильника</span>'
-                : `<span style="color:#b06000; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px;">shopping_bag</span> Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
+                ? '<span class="sfc-swap-badge is-ready"><span class="material-symbols-outlined">check_circle</span> Из холодильника</span>'
+                : `<span class="sfc-swap-badge is-shop"><span class="material-symbols-outlined">shopping_basket</span> Докупить: ${(cand.missing_ingredients || []).slice(0, 2).join(', ')}</span>`;
 
             const item = document.createElement('div');
             item.className = 'sfc-swap-item';
@@ -798,6 +919,25 @@
                 <div class="sfc-swap-item-info">
                     <div class="sfc-swap-item-title">${escapeHtml(cand.title)}</div>
                     <div class="sfc-swap-item-meta">
+                        ${tag}
+                        <span><span class="material-symbols-outlined">schedule</span> ${cand.time_mins} мин</span>
+                        <span><span class="material-symbols-outlined">local_fire_department</span> ${cand.calories} ккал</span>
+                    </div>
+                </div>
+                <button type="button" class="sfc-btn-primary sfc-btn-sm btn-choose-swap">
+                    Выбрать
+                </button>
+            `;
+
+            item.querySelector('.btn-choose-swap').addEventListener('click', () => {
+                applySwapMeal(cand);
+            });
+
+            dom.swapList.appendChild(item);
+        });
+
+        dom.swapModal.style.display = 'flex';
+    }
                         ${tag}
                         <span>${cand.time_mins} мин</span>
                         <span>${cand.calories} ккал</span>
@@ -935,7 +1075,15 @@
 
     function renderShoppingList() {
         if (!state.shoppingList || state.shoppingList.length === 0) {
-            dom.groupedShoppingContainer.innerHTML = '<p class="sfc-subtext">Все необходимые продукты уже есть в наличии в холодильнике.</p>';
+            dom.groupedShoppingContainer.innerHTML = `
+                <div class="sfc-empty-placeholder" style="padding: 24px 16px;">
+                    <div class="sfc-empty-icon-circle">
+                        <span class="material-symbols-outlined sfc-empty-icon">task_alt</span>
+                    </div>
+                    <h3>Все продукты есть в наличии</h3>
+                    <p class="sfc-subtext">Для составленного меню на неделю все ингредиенты уже найдены в вашем холодильнике.</p>
+                </div>
+            `;
             dom.shoppingRemainingCount.textContent = '0';
             return;
         }
@@ -943,26 +1091,47 @@
         dom.shoppingRemainingCount.textContent = state.shoppingList.length;
         dom.groupedShoppingContainer.innerHTML = '';
 
+        const catAisleIcons = {
+            'Овощи и зелень': 'eco',
+            'Фрукты и ягоды': 'nutrition',
+            'Молочные продукты': 'egg',
+            'Сыры': 'restaurant',
+            'Мясо и птица': 'restaurant_menu',
+            'Рыба и морепродукты': 'set_meal',
+            'Бакалея и крупы': 'grain',
+            'Бакалея и продукты': 'grain',
+            'Хлеб и выпечка': 'bakery_dining',
+            'Соусы и приправы': 'soup_kitchen',
+            'Другое': 'shopping_basket'
+        };
+
         for (const [category, items] of Object.entries(state.groupedShopping)) {
             const block = document.createElement('div');
-            block.className = 'sfc-keep-category';
+            block.className = 'sfc-aisle-block';
+
+            const aisleIcon = catAisleIcons[category] || 'shopping_basket';
 
             let itemsHtml = '';
             items.forEach(item => {
                 itemsHtml += `
-                    <div class="sfc-keep-item" data-root="${item.root}">
-                        <input type="checkbox" class="sfc-checkbox" id="chk_${item.root}" />
-                        <label for="chk_${item.root}" class="sfc-keep-label">
-                            <span>${escapeHtml(item.name)}</span>
-                            <span class="sfc-qty-tag">${escapeHtml(item.amount)}</span>
+                    <div class="sfc-checklist-item" data-root="${item.root}">
+                        <label class="sfc-checkbox-label">
+                            <input type="checkbox" class="sfc-checkbox" id="chk_${item.root}" />
+                            <span class="sfc-custom-checkbox"></span>
+                            <span class="sfc-checklist-name">${escapeHtml(item.name)}</span>
                         </label>
+                        <span class="sfc-checklist-qty">${escapeHtml(item.amount)}</span>
                     </div>
                 `;
             });
 
             block.innerHTML = `
-                <h4>${escapeHtml(category)} (${items.length})</h4>
-                <div>${itemsHtml}</div>
+                <div class="sfc-aisle-header">
+                    <span class="material-symbols-outlined sfc-aisle-icon">${aisleIcon}</span>
+                    <h4>${escapeHtml(category)}</h4>
+                    <span class="sfc-aisle-count">${items.length}</span>
+                </div>
+                <div class="sfc-aisle-items">${itemsHtml}</div>
             `;
 
             dom.groupedShoppingContainer.appendChild(block);
@@ -970,8 +1139,8 @@
 
         dom.groupedShoppingContainer.querySelectorAll('.sfc-checkbox').forEach(chk => {
             chk.addEventListener('change', () => {
-                const parent = chk.closest('.sfc-keep-item');
-                parent.classList.toggle('checked', chk.checked);
+                const parent = chk.closest('.sfc-checklist-item');
+                if (parent) parent.classList.toggle('checked', chk.checked);
                 updateRemainingShoppingCount();
             });
         });
@@ -982,7 +1151,8 @@
         const anyUnchecked = Array.from(checkboxes).some(c => !c.checked);
         checkboxes.forEach(c => {
             c.checked = anyUnchecked;
-            c.closest('.sfc-keep-item').classList.toggle('checked', anyUnchecked);
+            const item = c.closest('.sfc-checklist-item');
+            if (item) item.classList.toggle('checked', anyUnchecked);
         });
         updateRemainingShoppingCount();
     }
@@ -996,7 +1166,15 @@
         if (dom.locationPrompt) dom.locationPrompt.style.display = 'flex';
         if (dom.recHero) dom.recHero.style.display = 'none';
         if (dom.storesList) {
-            dom.storesList.innerHTML = '<div class="sfc-empty-placeholder" style="padding:24px 12px;"><span class="material-symbols-outlined sfc-empty-icon">near_me</span><h3>Ожидание местоположения</h3><p>Разрешите доступ к геопозиции или введите город выше, чтобы найти ближайшие магазины.</p></div>';
+            dom.storesList.innerHTML = `
+                <div class="sfc-empty-placeholder" style="padding: 24px 12px;">
+                    <div class="sfc-empty-icon-circle">
+                        <span class="material-symbols-outlined sfc-empty-icon">near_me</span>
+                    </div>
+                    <h3>Ожидание местоположения</h3>
+                    <p class="sfc-subtext">Разрешите доступ к геопозиции или укажите город выше, чтобы найти ближайшие магазины.</p>
+                </div>
+            `;
         }
     }
 
@@ -1078,18 +1256,16 @@
         dom.recTime.innerHTML = `<span class="material-symbols-outlined">directions_walk</span> ~${store.walking_time_mins} мин пешком`;
         dom.recHours.innerHTML = `<span class="material-symbols-outlined">schedule</span> ${store.opening_hours || '08:00 - 23:00'}`;
 
-        if (rec.ai_model && dom.recEngineLabel) {
-            dom.recEngineLabel.textContent = 'ИИ: ' + rec.ai_model;
+        if (dom.recEngineLabel) {
+            dom.recEngineLabel.textContent = 'Оптимальный выбор';
         }
 
         dom.recTips.innerHTML = '';
         if (rec.tips && rec.tips.length > 0) {
             rec.tips.forEach(t => {
                 const div = document.createElement('div');
-                div.style.display = 'flex';
-                div.style.alignItems = 'center';
-                div.style.gap = '6px';
-                div.innerHTML = `<span class="material-symbols-outlined" style="color:#137333; font-size:16px;">check</span> <span>${escapeHtml(t)}</span>`;
+                div.className = 'sfc-rec-tip-item';
+                div.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>${escapeHtml(t)}</span>`;
                 dom.recTips.appendChild(div);
             });
         }
@@ -1108,13 +1284,21 @@
         dom.storesList.innerHTML = '';
         if (!stores || stores.length === 0) {
             const msg = emptyMsg || 'В радиусе 3-5 км на карте не найдено продуктовых магазинов. Попробуйте указать другой адрес или район.';
-            dom.storesList.innerHTML = `<div class="sfc-empty-placeholder" style="padding:24px 12px;"><span class="material-symbols-outlined sfc-empty-icon">search_off</span><h3>Магазины не найдены</h3><p class="sfc-subtext">${escapeHtml(msg)}</p></div>`;
+            dom.storesList.innerHTML = `
+                <div class="sfc-empty-placeholder" style="padding: 24px 12px;">
+                    <div class="sfc-empty-icon-circle">
+                        <span class="material-symbols-outlined sfc-empty-icon">search_off</span>
+                    </div>
+                    <h3>Магазины не найдены</h3>
+                    <p class="sfc-subtext">${escapeHtml(msg)}</p>
+                </div>
+            `;
             return;
         }
 
         if (dom.storesSubtitle) {
             const locText = state.userCityName ? ` (${state.userCityName})` : '';
-            dom.storesSubtitle.textContent = `Найдено реальных магазинов на карте: ${stores.length}${locText}`;
+            dom.storesSubtitle.textContent = `Найдено на карте: ${stores.length}${locText}`;
         }
 
         stores.forEach(store => {
@@ -1124,16 +1308,16 @@
 
             let tagsHtml = '';
             (store.features || []).forEach(f => {
-                tagsHtml += `<span style="font-size:11px; color:#5f6368; margin-right:6px;">• ${escapeHtml(f)}</span>`;
+                tagsHtml += `<span class="sfc-place-feature">• ${escapeHtml(f)}</span>`;
             });
 
             item.innerHTML = `
                 <div class="sfc-place-head">
-                    <span>${escapeHtml(store.name)}</span>
-                    <span style="color:#137333; font-weight:600;">${store.distance_m} м</span>
+                    <span class="sfc-place-name">${escapeHtml(store.name)}</span>
+                    <span class="sfc-place-dist">${store.distance_m} м</span>
                 </div>
                 <div class="sfc-place-addr">${escapeHtml(store.address || 'Адрес уточняется')} • ${escapeHtml(store.opening_hours || '08:00-23:00')}</div>
-                <div style="margin-top:4px;">${tagsHtml}</div>
+                <div class="sfc-place-features">${tagsHtml}</div>
             `;
 
             item.addEventListener('click', () => {
@@ -1185,32 +1369,32 @@
 
         const userIcon = L.divIcon({
             className: 'sfc-user-pin',
-            html: '<div style="background:#1a73e8; color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">person</span></div>',
-            iconSize: [26, 26],
-            iconAnchor: [13, 13]
+            html: '<div style="background:#2D5E3B; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);"><span class="material-symbols-outlined" style="font-size:16px;">my_location</span></div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
         });
 
         state.userMarker = L.marker([state.userLocation.lat, state.userLocation.lon], { icon: userIcon })
             .addTo(state.map)
-            .bindPopup('<strong>Вы находитесь здесь</strong>');
+            .bindPopup('<strong style="font-family:\'Plus Jakarta Sans\',sans-serif; font-size:13px;">Вы находитесь здесь</strong>');
 
         (state.stores || []).forEach(store => {
             const isRec = state.recommendation?.store?.id === store.id;
-            const markerBg = isRec ? '#1a73e8' : '#5f6368';
+            const markerBg = isRec ? '#C85A32' : '#2D5E3B';
 
             const storeIcon = L.divIcon({
                 className: 'sfc-store-pin',
-                html: `<div style="background:${markerBg}; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,0.25);"><span class="material-symbols-outlined" style="font-size:16px;">storefront</span></div>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
+                html: `<div style="background:${markerBg}; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);"><span class="material-symbols-outlined" style="font-size:18px;">storefront</span></div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
             });
 
             const popupContent = `
-                <div style="font-family:'Roboto',sans-serif; min-width:180px; padding:4px;">
-                    <div style="font-size:14px; font-weight:700; margin-bottom:2px;">${escapeHtml(store.name)}</div>
-                    <div style="font-size:12px; color:#5f6368; margin-bottom:4px;">${escapeHtml(store.address || '')}</div>
-                    <div style="font-size:12px; font-weight:600; color:#137333; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
-                    <a href="https://yandex.ru/maps/?rtext=~${store.lat},${store.lon}&rtt=pd" target="_blank" style="display:inline-block; background:#1a73e8; color:#fff; padding:4px 10px; border-radius:4px; font-size:11px; text-decoration:none;">Маршрут</a>
+                <div style="font-family:\'Plus Jakarta Sans\',sans-serif; min-width:180px; padding:4px;">
+                    <div style="font-family:\'Lora\',serif; font-size:15px; font-weight:600; margin-bottom:3px; color:#1F1A16;">${escapeHtml(store.name)}</div>
+                    <div style="font-size:12px; color:#6B6156; margin-bottom:4px;">${escapeHtml(store.address || '')}</div>
+                    <div style="font-size:12px; font-weight:600; color:#2D5E3B; margin-bottom:8px;">${store.distance_m} м (~${store.walking_time_mins} мин)</div>
+                    <a href="https://yandex.ru/maps/?rtext=~${store.lat},${store.lon}&rtt=pd" target="_blank" style="display:inline-block; background:#2D5E3B; color:#fff; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; text-decoration:none;">Маршрут</a>
                 </div>
             `;
 
