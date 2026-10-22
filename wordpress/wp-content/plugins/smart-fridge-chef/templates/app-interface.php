@@ -16,14 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
             <div class="sfc-topbar-right">
                 <button type="button" id="sfc-btn-demo" class="sfc-btn-secondary" title="Заполнить готовым набором продуктов">
-                    <span class="material-symbols-outlined">playlist_add</span>
+                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v6m3-3h-6M3 6h18M3 12h12M3 18h9"/></svg>
                     <span>Пример продуктов</span>
                 </button>
                 <button type="button" id="sfc-btn-reset" class="sfc-btn-secondary" title="Очистить все данные">
-                    <span class="material-symbols-outlined">delete_sweep</span>
+                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                    <span>Очистить</span>
                 </button>
                 <a href="<?php echo esc_url( admin_url( 'admin.php?page=smart-fridge-chef' ) ); ?>" class="sfc-btn-secondary" title="Настройки подключения" id="sfc-ai-status-badge">
-                    <span class="material-symbols-outlined">tune</span>
+                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                    <span>Настройки</span>
                 </a>
                 <span id="sfc-ai-status-text" style="display:none;"></span>
             </div>
@@ -75,7 +77,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <input type="file" id="sfc-file-input" accept="image/*" class="sfc-hidden-input" />
                         <div class="sfc-dropzone" id="sfc-dropzone">
                             <div class="sfc-dropzone-icon">
-                                <span class="material-symbols-outlined">kitchen</span>
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="8" y1="6" x2="8" y2="8"/><line x1="8" y1="14" x2="8" y2="17"/></svg>
                             </div>
                             <div class="sfc-dropzone-label">
                                 <strong>Сфотографируйте холодильник, остальное мы возьмём на себя</strong>
@@ -83,11 +85,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </div>
                             <div class="sfc-dropzone-actions">
                                 <button type="button" class="sfc-btn-primary" id="sfc-btn-choose-file">
-                                    <span class="material-symbols-outlined">add_a_photo</span>
+                                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                     <span>Выбрать фото</span>
                                 </button>
                                 <button type="button" class="sfc-btn-secondary" id="sfc-btn-camera">
-                                    <span class="material-symbols-outlined">photo_camera</span>
+                                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                                     <span>С камеры</span>
                                 </button>
                             </div>
@@ -102,7 +104,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </div>
                             <div class="sfc-preview-footer">
                                 <div class="sfc-preview-status" id="sfc-scan-status-text">
-                                    <span class="material-symbols-outlined sfc-spin">sync</span>
+                                    <svg class="sfc-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                                     <span>Распознавание продуктов...</span>
                                 </div>
                                 <button type="button" class="sfc-btn-danger-outline" id="sfc-btn-remove-photo">
@@ -141,14 +143,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <p class="sfc-subtext">Продукты, из которых шеф составит меню на каждый день</p>
                         </div>
                         <button type="button" class="sfc-btn-secondary" id="sfc-btn-add-manual-product">
-                            <span class="material-symbols-outlined">add</span>
+                            <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             <span>Добавить вручную</span>
                         </button>
                     </div>
 
                     <div id="sfc-products-empty" class="sfc-empty-placeholder">
                         <div class="sfc-empty-icon-wrap">
-                            <span class="material-symbols-outlined">kitchen</span>
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="8" y1="6" x2="8" y2="8"/><line x1="8" y1="14" x2="8" y2="17"/></svg>
                         </div>
                         <h3>В холодильнике пока пусто</h3>
                         <p>Сфотографируйте полки, введите список или выберите готовый набор слева, чтобы наполнить запасы.</p>
@@ -167,7 +169,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </div>
                             <button type="button" class="sfc-btn-primary sfc-btn-lg" id="sfc-btn-start-cook">
                                 <span>Составить меню</span>
-                                <span class="material-symbols-outlined">arrow_forward</span>
+                                <svg class="sfc-svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                             </button>
                         </div>
                     </div>
@@ -201,11 +203,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
                 <div class="sfc-header-actions">
                     <button type="button" class="sfc-btn-secondary" id="sfc-btn-save-plan">
-                        <span class="material-symbols-outlined">save</span>
+                        <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         <span>Сохранить</span>
                     </button>
                     <button type="button" class="sfc-btn-secondary" onclick="window.print()">
-                        <span class="material-symbols-outlined">print</span>
+                        <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                         <span>Печать</span>
                     </button>
                 </div>
@@ -227,7 +229,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <p class="sfc-subtext">Только то, чего не хватает в холодильнике для меню на неделю</p>
                 </div>
                 <button type="button" class="sfc-btn-primary" id="sfc-btn-go-to-stores">
-                    <span class="material-symbols-outlined">storefront</span>
+                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1 10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2l1-10"/><path d="M3 9a3 3 0 0 1 6 0 3 3 0 0 1 6 0 3 3 0 0 1 6 0"/><line x1="3" y1="9" x2="21" y2="9"/><path d="M4 9V4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v5"/></svg>
                     <span>Найти магазины рядом</span>
                 </button>
             </div>
@@ -286,7 +288,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <p>Разрешите доступ к геопозиции или укажите ваш город в строке поиска ниже.</p>
                 </div>
                 <button type="button" class="sfc-btn-primary" id="sfc-btn-prompt-geolocate">
-                    <span class="material-symbols-outlined">my_location</span>
+                    <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
                     <span>Поделиться местоположением</span>
                 </button>
             </div>
@@ -308,8 +310,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <p class="sfc-rec-reason" id="sfc-rec-reason">Анализ ассортимента...</p>
                         
                         <div class="sfc-rec-metadata">
-                            <span id="sfc-rec-time"><span class="material-symbols-outlined">directions_walk</span> ~-- мин пешком</span>
-                            <span id="sfc-rec-hours"><span class="material-symbols-outlined">schedule</span> --</span>
+                            <span id="sfc-rec-time"><svg class="sfc-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l2-7 3-3-2-4-3 1-2-1M14 15l2 7"/></svg> ~-- мин пешком</span>
+                            <span id="sfc-rec-hours"><svg class="sfc-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> --</span>
                         </div>
 
                         <div class="sfc-rec-tips-box" id="sfc-rec-tips">
@@ -334,11 +336,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <div class="sfc-search-input-box">
                             <input type="text" id="sfc-search-address" placeholder="Укажите город или адрес..." value="" />
                             <button type="button" id="sfc-btn-search-city" class="sfc-search-btn" title="Найти">
-                                <span class="material-symbols-outlined">search</span>
+                                <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                             </button>
                         </div>
                         <button type="button" class="sfc-btn-secondary" id="sfc-btn-geolocate">
-                            <span class="material-symbols-outlined">my_location</span>
+                            <svg class="sfc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
                             <span>Мое местоположение</span>
                         </button>
                     </div>
@@ -362,7 +364,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     <div id="sfc-recipe-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet">
             <button type="button" class="sfc-modal-close" id="sfc-modal-close-btn" aria-label="Закрыть">
-                <span class="material-symbols-outlined">close</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
             <div id="sfc-modal-content">
                 <!-- Modal content -->
@@ -373,7 +375,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     <div id="sfc-swap-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet">
             <button type="button" class="sfc-modal-close" id="sfc-swap-modal-close" aria-label="Закрыть">
-                <span class="material-symbols-outlined">close</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
             <div class="sfc-modal-title">
                 <h3 id="sfc-swap-modal-title">Замена блюда</h3>
@@ -388,7 +390,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     <div id="sfc-add-modal" class="sfc-modal-scrim" style="display: none;">
         <div class="sfc-modal-sheet sfc-modal-compact">
             <button type="button" class="sfc-modal-close" id="sfc-add-modal-close" aria-label="Закрыть">
-                <span class="material-symbols-outlined">close</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
             <div class="sfc-modal-title">
                 <h3>Добавить продукт</h3>

@@ -1,7 +1,7 @@
 /**
  * Smart Fridge Chef - Culinary Editorial Theme
- * Warm, appetizing, human-crafted design system.
- * Palette: Warm linen, fresh rosemary green, roasted tomato terracotta, espresso text.
+ * Clean, tactile, warm and appetite-inducing design system.
+ * Zero shadows, zero ligature fallbacks, zero colored dots.
  * Typography: Lora (Headings) + Montserrat (UI & Interface).
  */
 
@@ -41,15 +41,15 @@
     --sfc-radius-xs: 4px;
     --sfc-radius-sm: 6px;
     --sfc-radius: 10px;
-    --sfc-radius-lg: 16px;
+    --sfc-radius-lg: 14px;
     --sfc-radius-full: 9999px;
 
-    --sfc-shadow-xs: 0 1px 2px rgba(45, 30, 20, 0.04);
-    --sfc-shadow-card: 0 2px 8px rgba(45, 30, 20, 0.04), 0 1px 2px rgba(45, 30, 20, 0.02);
-    --sfc-shadow-hover: 0 6px 18px rgba(45, 30, 20, 0.06), 0 2px 4px rgba(45, 30, 20, 0.03);
-    --sfc-shadow-modal: 0 20px 48px rgba(35, 20, 10, 0.16);
+    --sfc-shadow-xs: none;
+    --sfc-shadow-card: none;
+    --sfc-shadow-hover: none;
+    --sfc-shadow-modal: none;
 
-    --sfc-transition: 180ms ease;
+    --sfc-transition: 160ms ease;
 }
 
 /* Typography Base */
@@ -84,6 +84,7 @@
 
 .sfc-app-root * {
     box-sizing: border-box;
+    box-shadow: none !important;
 }
 
 .sfc-app-root h1,
@@ -121,17 +122,20 @@
     line-height: 1.5;
 }
 
-.sfc-app-root .material-symbols-outlined {
-    font-size: 19px;
+.sfc-app-root svg {
     vertical-align: middle;
-    line-height: 1;
+}
+
+.sfc-app-root .sfc-svg-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 /* -------------------------------------------------------------
- * Buttons (Tactile, Warm, Clear Hierarchy)
+ * Buttons (Clean, Flat, Warm, Zero Shadows)
  * ------------------------------------------------------------- */
 
 .sfc-btn-primary {
@@ -146,20 +150,17 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(195, 83, 44, 0.2);
-    transition: background-color var(--sfc-transition), transform var(--sfc-transition), box-shadow var(--sfc-transition);
+    transition: background-color var(--sfc-transition), border-color var(--sfc-transition);
     text-decoration: none;
 }
 
 .sfc-btn-primary:hover {
     background: var(--sfc-accent-hover);
     border-color: var(--sfc-accent-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(195, 83, 44, 0.28);
 }
 
 .sfc-btn-primary:active {
-    transform: translateY(0);
+    background: var(--sfc-accent-hover);
 }
 
 .sfc-btn-primary.sfc-btn-lg {
@@ -176,8 +177,6 @@
 .sfc-btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
 }
 
 .sfc-btn-secondary {
@@ -192,19 +191,13 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: var(--sfc-shadow-xs);
-    transition: background-color var(--sfc-transition), border-color var(--sfc-transition), transform var(--sfc-transition);
+    transition: background-color var(--sfc-transition), border-color var(--sfc-transition);
     text-decoration: none;
 }
 
 .sfc-btn-secondary:hover {
     background: var(--sfc-surface-subtle);
     border-color: var(--sfc-border-hover);
-    transform: translateY(-1px);
-}
-
-.sfc-btn-secondary:active {
-    transform: translateY(0);
 }
 
 .sfc-btn-secondary.sfc-btn-sm {
@@ -245,7 +238,6 @@
     background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius-lg);
-    box-shadow: var(--sfc-shadow-card);
     margin-bottom: 24px;
     overflow: hidden;
 }
@@ -258,7 +250,7 @@
     border-bottom: 1px solid var(--sfc-border-subtle);
     flex-wrap: wrap;
     gap: 16px;
-    background: linear-gradient(180deg, #FFFFFF 0%, #FDFBF8 100%);
+    background: var(--sfc-surface);
 }
 
 .sfc-topbar-left {
@@ -290,8 +282,8 @@
     display: flex;
     overflow-x: auto;
     background: var(--sfc-surface-subtle);
-    padding: 4px 8px;
-    gap: 4px;
+    padding: 6px 10px;
+    gap: 6px;
     border-top: 1px solid var(--sfc-border-subtle);
     scrollbar-width: none;
 }
@@ -306,7 +298,7 @@
     gap: 8px;
     padding: 10px 18px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     border-radius: var(--sfc-radius);
     font-size: 14px;
     font-weight: 600;
@@ -318,13 +310,13 @@
 
 .sfc-nav-item:hover {
     color: var(--sfc-text-primary);
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .sfc-nav-item.active {
     color: var(--sfc-text-primary);
     background: var(--sfc-surface);
-    box-shadow: 0 1px 3px rgba(45, 30, 20, 0.08);
+    border-color: var(--sfc-border);
 }
 
 .sfc-counter {
@@ -340,7 +332,7 @@
 .sfc-nav-item.active .sfc-counter {
     background: var(--sfc-accent-subtle);
     color: var(--sfc-accent);
-    border-color: rgba(195, 83, 44, 0.2);
+    border-color: rgba(195, 83, 44, 0.3);
 }
 
 /* -------------------------------------------------------------
@@ -353,12 +345,12 @@
 
 .sfc-view.active {
     display: block;
-    animation: sfcFadeIn 200ms ease;
+    animation: sfcFadeIn 180ms ease;
 }
 
 @keyframes sfcFadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .sfc-split-layout {
@@ -378,7 +370,6 @@
     background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius-lg);
-    box-shadow: var(--sfc-shadow-card);
     padding: 24px;
 }
 
@@ -414,7 +405,7 @@
     flex: 1;
     padding: 9px 14px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     border-radius: var(--sfc-radius-sm);
     font-size: 13px;
     font-weight: 600;
@@ -427,17 +418,17 @@
 .sfc-segment.active {
     background: var(--sfc-surface);
     color: var(--sfc-text-primary);
-    box-shadow: 0 1px 3px rgba(45, 30, 20, 0.08);
+    border-color: var(--sfc-border);
 }
 
-/* Upload Dropzone (Editorial Culinary Invitation) */
+/* Upload Dropzone */
 .sfc-dropzone {
     border: 2px dashed #D5C8B5;
-    background: linear-gradient(180deg, #FDFBF8 0%, #FAF5ED 100%);
+    background: var(--sfc-surface-subtle);
     border-radius: var(--sfc-radius-lg);
     padding: 32px 20px;
     text-align: center;
-    transition: border-color var(--sfc-transition), background var(--sfc-transition);
+    transition: border-color var(--sfc-transition), background-color var(--sfc-transition);
 }
 
 .sfc-dropzone.dragover {
@@ -449,17 +440,13 @@
     width: 48px;
     height: 48px;
     border-radius: var(--sfc-radius-full);
-    background: var(--sfc-surface-subtle);
+    background: var(--sfc-surface);
     color: var(--sfc-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 12px;
-    border: 1px solid var(--sfc-border-subtle);
-}
-
-.sfc-dropzone-icon .material-symbols-outlined {
-    font-size: 26px;
+    border: 1px solid var(--sfc-border);
 }
 
 .sfc-dropzone-label {
@@ -496,7 +483,6 @@
     border-radius: var(--sfc-radius);
     overflow: hidden;
     background: var(--sfc-surface);
-    box-shadow: var(--sfc-shadow-card);
 }
 
 .sfc-preview-img-container {
@@ -578,7 +564,6 @@
 
 .sfc-textarea:focus {
     border-color: var(--sfc-primary);
-    box-shadow: 0 0 0 3px rgba(40, 84, 48, 0.12);
 }
 
 .sfc-text-footer {
@@ -622,11 +607,10 @@
 .sfc-preset-chip:hover {
     background: var(--sfc-surface);
     border-color: var(--sfc-border-hover);
-    transform: translateY(-1px);
 }
 
 /* -------------------------------------------------------------
- * Pantry Shelves Board (Living Tiles, Category Icons, Freshness Dot)
+ * Pantry Shelves Board (Zero Dots, Zero Shadows, Crisp SVG Icons)
  * ------------------------------------------------------------- */
 
 .sfc-pantry-board {
@@ -637,11 +621,10 @@
 }
 
 .sfc-pantry-shelf {
-    border: 1px solid var(--sfc-border-subtle);
+    border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius);
     padding: 16px 18px;
-    background: linear-gradient(180deg, #FFFFFF 0%, #FDFBF8 100%);
-    box-shadow: var(--sfc-shadow-xs);
+    background: var(--sfc-surface);
 }
 
 .sfc-pantry-shelf-header {
@@ -660,7 +643,9 @@
 }
 
 .sfc-pantry-shelf-icon {
-    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: var(--sfc-primary);
 }
 
@@ -678,6 +663,7 @@
     font-weight: 600;
     color: var(--sfc-text-secondary);
     background: var(--sfc-surface-subtle);
+    border: 1px solid var(--sfc-border-subtle);
     padding: 2px 8px;
     border-radius: var(--sfc-radius-full);
 }
@@ -692,19 +678,18 @@
     background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius-sm);
-    padding: 9px 12px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     position: relative;
-    box-shadow: 0 1px 2px rgba(45, 30, 20, 0.03);
-    transition: border-color var(--sfc-transition), box-shadow var(--sfc-transition);
+    transition: border-color var(--sfc-transition), background-color var(--sfc-transition);
 }
 
 .sfc-pantry-card:hover {
     border-color: var(--sfc-border-hover);
-    box-shadow: 0 2px 6px rgba(45, 30, 20, 0.06);
+    background: var(--sfc-surface-subtle);
 }
 
 .sfc-pantry-card-left {
@@ -715,25 +700,8 @@
     min-width: 0;
 }
 
-.sfc-freshness-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: var(--sfc-radius-full);
-    flex-shrink: 0;
-}
-
-.sfc-freshness-dot.is-fresh {
-    background: var(--sfc-fresh);
-    box-shadow: 0 0 0 2px var(--sfc-fresh-subtle);
-}
-
-.sfc-freshness-dot.is-shelf {
-    background: var(--sfc-shelf);
-    box-shadow: 0 0 0 2px var(--sfc-shelf-subtle);
-}
-
 .sfc-pantry-card-name {
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--sfc-text-primary);
     white-space: nowrap;
@@ -744,14 +712,14 @@
 .sfc-pantry-card-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .sfc-pantry-card-qty {
     font-size: 12px;
     color: var(--sfc-text-secondary);
     background: var(--sfc-surface-subtle);
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: var(--sfc-radius-xs);
     border: 1px solid var(--sfc-border-subtle);
     white-space: nowrap;
@@ -791,34 +759,26 @@
     background: var(--sfc-danger-subtle);
 }
 
-.sfc-btn-remove-item .material-symbols-outlined {
-    font-size: 16px !important;
-}
-
 /* Empty State */
 .sfc-empty-placeholder {
     text-align: center;
     padding: 44px 20px;
     border: 1px dashed var(--sfc-border);
     border-radius: var(--sfc-radius-lg);
-    background: linear-gradient(180deg, #FDFBF8 0%, #FAF5ED 100%);
+    background: var(--sfc-surface-subtle);
 }
 
 .sfc-empty-icon-wrap {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--sfc-radius-full);
-    background: var(--sfc-surface-subtle);
+    background: var(--sfc-surface);
     color: var(--sfc-text-muted);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 14px;
-    border: 1px solid var(--sfc-border-subtle);
-}
-
-.sfc-empty-icon-wrap .material-symbols-outlined {
-    font-size: 28px;
+    border: 1px solid var(--sfc-border);
 }
 
 .sfc-empty-placeholder h3 {
@@ -842,10 +802,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    background: linear-gradient(180deg, #FDFBF8 0%, #F5EFE6 100%);
+    background: var(--sfc-surface-subtle);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius);
-    box-shadow: var(--sfc-shadow-xs);
     flex-wrap: wrap;
     gap: 16px;
     margin-top: 16px;
@@ -895,7 +854,7 @@
 
 .sfc-filter-pill {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     padding: 7px 16px;
     border-radius: var(--sfc-radius-sm);
     font-size: 13px;
@@ -912,7 +871,7 @@
 .sfc-filter-pill.active {
     background: var(--sfc-surface);
     color: var(--sfc-text-primary);
-    box-shadow: 0 1px 3px rgba(45, 30, 20, 0.08);
+    border-color: var(--sfc-border);
 }
 
 .sfc-recipe-grid {
@@ -925,16 +884,14 @@
     background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius-lg);
-    box-shadow: var(--sfc-shadow-card);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform var(--sfc-transition), box-shadow var(--sfc-transition);
+    transition: border-color var(--sfc-transition);
 }
 
 .sfc-recipe-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--sfc-shadow-hover);
+    border-color: var(--sfc-border-hover);
 }
 
 .sfc-recipe-cover {
@@ -949,11 +906,11 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 300ms ease;
+    transition: transform 250ms ease;
 }
 
 .sfc-recipe-card:hover .sfc-recipe-cover img {
-    transform: scale(1.03);
+    transform: scale(1.02);
 }
 
 .sfc-recipe-content {
@@ -977,6 +934,7 @@
     background: var(--sfc-primary-subtle);
     padding: 2px 8px;
     border-radius: var(--sfc-radius-xs);
+    border: 1px solid rgba(40, 84, 48, 0.15);
 }
 
 .sfc-recipe-meta-text {
@@ -1016,17 +974,13 @@
 .sfc-recipe-status.is-ready {
     background: var(--sfc-fresh-subtle);
     color: var(--sfc-fresh);
-    border: 1px solid rgba(46, 125, 50, 0.2);
+    border: 1px solid rgba(46, 125, 50, 0.25);
 }
 
 .sfc-recipe-status.is-shop {
     background: var(--sfc-accent-subtle);
     color: var(--sfc-accent);
-    border: 1px solid rgba(195, 83, 44, 0.2);
-}
-
-.sfc-recipe-status .material-symbols-outlined {
-    font-size: 16px;
+    border: 1px solid rgba(195, 83, 44, 0.25);
 }
 
 .sfc-recipe-ingredients-preview {
@@ -1100,7 +1054,6 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    box-shadow: var(--sfc-shadow-xs);
     transition: all var(--sfc-transition);
 }
 
@@ -1113,7 +1066,6 @@
     background: var(--sfc-primary);
     border-color: var(--sfc-primary);
     color: #FFFFFF;
-    box-shadow: 0 2px 6px rgba(40, 84, 48, 0.25);
 }
 
 .sfc-cal-day-btn .day-title {
@@ -1128,13 +1080,12 @@
 }
 
 .sfc-day-strategy-notice {
-    background: linear-gradient(180deg, #FDFBF8 0%, #F6F0E6 100%);
+    background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-left: 4px solid var(--sfc-primary);
     border-radius: var(--sfc-radius-sm);
     padding: 14px 18px;
     margin-bottom: 20px;
-    box-shadow: var(--sfc-shadow-xs);
 }
 
 .sfc-strategy-text {
@@ -1174,13 +1125,11 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--sfc-shadow-card);
-    transition: transform var(--sfc-transition), box-shadow var(--sfc-transition);
+    transition: border-color var(--sfc-transition);
 }
 
 .sfc-slot-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--sfc-shadow-hover);
+    border-color: var(--sfc-border-hover);
 }
 
 .sfc-slot-head {
@@ -1197,6 +1146,7 @@
     background: var(--sfc-primary-subtle);
     padding: 2px 7px;
     border-radius: var(--sfc-radius-xs);
+    border: 1px solid rgba(40, 84, 48, 0.15);
 }
 
 .sfc-slot-status {
@@ -1258,7 +1208,7 @@
 }
 
 .sfc-day-nutrition-summary {
-    background: var(--sfc-surface-subtle);
+    background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius);
     padding: 14px 20px;
@@ -1292,7 +1242,7 @@
 }
 
 /* -------------------------------------------------------------
- * Shopping List (Aisle Organization, Warm Custom Checkboxes)
+ * Shopping List (Aisle Organization, Custom Checkboxes)
  * ------------------------------------------------------------- */
 
 .sfc-shopping-layout {
@@ -1333,7 +1283,6 @@
     padding: 16px 18px;
     margin-bottom: 16px;
     background: var(--sfc-surface);
-    box-shadow: var(--sfc-shadow-xs);
 }
 
 .sfc-aisle-header {
@@ -1346,7 +1295,8 @@
 }
 
 .sfc-aisle-icon {
-    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
     color: var(--sfc-primary);
 }
 
@@ -1431,8 +1381,7 @@
     border-radius: var(--sfc-radius);
     padding: 18px;
     margin-bottom: 20px;
-    background: linear-gradient(180deg, #FDFBF8 0%, #FAF5ED 100%);
-    box-shadow: var(--sfc-shadow-xs);
+    background: var(--sfc-surface);
 }
 
 .sfc-sidebar-card-title {
@@ -1454,7 +1403,6 @@
     border-radius: var(--sfc-radius);
     padding: 18px;
     background: var(--sfc-surface);
-    box-shadow: var(--sfc-shadow-xs);
 }
 
 .sfc-sidebar-hints h4 {
@@ -1483,7 +1431,7 @@
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius);
     padding: 20px;
-    background: linear-gradient(180deg, #FDFBF8 0%, #FAF5ED 100%);
+    background: var(--sfc-surface);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1505,11 +1453,10 @@
 }
 
 .sfc-rec-card {
-    border: 1px solid rgba(40, 84, 48, 0.25);
+    border: 1px solid rgba(40, 84, 48, 0.3);
     border-radius: var(--sfc-radius-lg);
     margin-bottom: 24px;
     background: var(--sfc-surface);
-    box-shadow: var(--sfc-shadow-card);
     overflow: hidden;
 }
 
@@ -1627,7 +1574,6 @@
 
 .sfc-search-input-box input:focus {
     border-color: var(--sfc-primary);
-    box-shadow: 0 0 0 3px rgba(40, 84, 48, 0.12);
 }
 
 .sfc-search-btn {
@@ -1664,14 +1610,12 @@
     border-radius: var(--sfc-radius);
     padding: 14px;
     cursor: pointer;
-    box-shadow: var(--sfc-shadow-xs);
     transition: all var(--sfc-transition);
 }
 
 .sfc-place-card:hover {
     border-color: var(--sfc-primary);
     background: var(--sfc-surface-subtle);
-    transform: translateY(-1px);
 }
 
 .sfc-place-card.selected {
@@ -1716,10 +1660,11 @@
     background: var(--sfc-surface-subtle);
     padding: 2px 7px;
     border-radius: var(--sfc-radius-xs);
+    border: 1px solid var(--sfc-border-subtle);
 }
 
 /* -------------------------------------------------------------
- * Modals (Warm Sheet, Blurred Backdrop, Clean Typography)
+ * Modals (Flat Sheet, Blurred Backdrop, Clean Borders)
  * ------------------------------------------------------------- */
 
 .sfc-modal-scrim {
@@ -1739,7 +1684,6 @@
     background: var(--sfc-surface);
     border: 1px solid var(--sfc-border);
     border-radius: var(--sfc-radius-lg);
-    box-shadow: var(--sfc-shadow-modal);
     max-width: 660px;
     width: 100%;
     max-height: 90vh;
@@ -1865,11 +1809,13 @@
 .sfc-modal-status.ready {
     background: var(--sfc-fresh-subtle);
     color: var(--sfc-fresh);
+    border: 1px solid rgba(46, 125, 50, 0.25);
 }
 
 .sfc-modal-status.shop {
     background: var(--sfc-accent-subtle);
     color: var(--sfc-accent);
+    border: 1px solid rgba(195, 83, 44, 0.25);
 }
 
 .sfc-modal-steps-list {
@@ -1992,7 +1938,6 @@
 
 .sfc-form-field input:focus {
     border-color: var(--sfc-primary);
-    box-shadow: 0 0 0 3px rgba(40, 84, 48, 0.12);
 }
 
 .sfc-modal-actions {
@@ -2012,7 +1957,8 @@
 }
 
 .sfc-item-icon {
-    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
     color: var(--sfc-primary);
 }
 
@@ -2022,6 +1968,7 @@
     background: var(--sfc-surface-subtle);
     padding: 2px 6px;
     border-radius: var(--sfc-radius-xs);
+    border: 1px solid var(--sfc-border-subtle);
 }
 
 .sfc-fresh-tag {

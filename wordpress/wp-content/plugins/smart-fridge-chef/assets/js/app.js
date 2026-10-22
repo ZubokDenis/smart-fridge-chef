@@ -2,6 +2,35 @@
 (function () {
     'use strict';
 
+    function sfcSvg(icon, size = 16, className = '') {
+        const cls = className ? ` class="${className}"` : '';
+        const icons = {
+            close: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+            arrow_forward: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`,
+            sync: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>`,
+            check: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+            check_circle: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+            save: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`,
+            storefront: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1 10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2l1-10"/><path d="M3 9a3 3 0 0 1 6 0 3 3 0 0 1 6 0 3 3 0 0 1 6 0"/><line x1="3" y1="9" x2="21" y2="9"/><path d="M4 9V4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v5"/></svg>`,
+            my_location: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>`,
+            search: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+            walk: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l2-7 3-3-2-4-3 1-2-1M14 15l2 7"/></svg>`,
+            clock: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+            kitchen: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="8" y1="6" x2="8" y2="8"/><line x1="8" y1="14" x2="8" y2="17"/></svg>`,
+            eco: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13C4 7 10 3 20 3c0 10-4 16-9 17Z"/><path d="M12 12c-2 2-4 5-4 8"/></svg>`,
+            nutrition: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="8"/><path d="M12 6V2M15 4c-1.5 1-2.5 1-3 0"/></svg>`,
+            egg: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8 2 5 7 5 13a7 7 0 0 0 14 0C19 7 16 2 12 2z"/></svg>`,
+            restaurant: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l14-5v16"/><circle cx="10" cy="14" r="1.5"/><circle cx="15" cy="16" r="1"/></svg>`,
+            restaurant_menu: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2l4 4-14 14-4-4L18 2z"/><line x1="14" y1="6" x2="18" y2="10"/><line x1="3" y1="21" x2="7" y2="17"/></svg>`,
+            set_meal: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12c4-6 12-4 16 0-4 4-12 6-16 0z"/><path d="M6 12L2 9v6l4-3z"/><circle cx="17" cy="11" r="1"/></svg>`,
+            grain: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M8 7c2-1 4 1 4 3M16 11c-2-1-4 1-4 3M8 15c2-1 4 1 4 3"/></svg>`,
+            bakery_dining: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="5"/><path d="M7 10c1 2 3 2 4 0M13 10c1 2 3 2 4 0"/></svg>`,
+            soup_kitchen: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><line x1="12" y1="2" x2="12" y2="7"/></svg>`,
+            shopping_basket: `<svg${cls} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1 10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2l1-10"/><path d="M3 9a3 3 0 0 1 6 0 3 3 0 0 1 6 0 3 3 0 0 1 6 0"/><line x1="3" y1="9" x2="21" y2="9"/><path d="M4 9V4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v5"/></svg>`
+        };
+        return icons[icon] || icons['kitchen'];
+    }
+
     const state = {
         products: [],
         recipes: { all: [], ready_now: [], need_more: [] },
@@ -324,7 +353,7 @@
                 dom.previewImg.src = webpDataUrl;
                 dom.dropzone.style.display = 'none';
                 dom.previewWrapper.style.display = 'block';
-                dom.scanStatusText.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Определение продуктов и подбор рецептов...</span>';
+                dom.scanStatusText.innerHTML = sfcSvg('sync', 16, 'sfc-spin') + ' <span>Определение продуктов и подбор рецептов...</span>';
 
                 sendAnalyzeRequest({
                     type: 'photo',
@@ -359,7 +388,7 @@
                 saveProductsState();
                 renderProducts();
                 if (dom.scanStatusText) {
-                    dom.scanStatusText.innerHTML = `<span class="material-symbols-outlined sfc-scan-success">check_circle</span> <span>Определено продуктов: ${data.products.length}. Подбор меню...</span>`;
+                    dom.scanStatusText.innerHTML = sfcSvg('check_circle', 16, 'sfc-scan-success') + ` <span>Определено продуктов: ${data.products.length}. Подбор меню...</span>`;
                 }
 
                 if (autoGenerateAfter) {
@@ -401,6 +430,7 @@
                 'Овощи и зелень': 'eco',
                 'Фрукты и ягоды': 'nutrition',
                 'Молочные продукты': 'egg',
+                'Яйца': 'egg',
                 'Сыры': 'restaurant',
                 'Мясо и птица': 'restaurant_menu',
                 'Рыба и морепродукты': 'set_meal',
@@ -414,23 +444,19 @@
             for (const [category, items] of Object.entries(groups)) {
                 const shelf = document.createElement('div');
                 shelf.className = 'sfc-pantry-shelf';
-                const catIcon = catIcons[category] || 'restaurant';
+                const catIcon = catIcons[category] || 'kitchen';
 
                 let itemsHtml = '';
                 items.forEach(({ prod, index }) => {
-                    const freshLabel = prod.perishable ? 'Свежий продукт' : 'Длительное хранение';
-                    const freshClass = prod.perishable ? 'is-fresh' : 'is-shelf';
-
                     itemsHtml += `
                         <div class="sfc-pantry-card">
                             <div class="sfc-pantry-card-left">
-                                <span class="sfc-freshness-dot ${freshClass}" title="${freshLabel}"></span>
                                 <span class="sfc-pantry-card-name">${escapeHtml(prod.name)}</span>
                             </div>
                             <div class="sfc-pantry-card-right">
                                 <span class="sfc-pantry-card-qty">${escapeHtml(prod.quantity || '1 шт')}</span>
                                 <button type="button" class="sfc-btn-remove-item btn-delete-prod" data-index="${index}" title="Удалить ${escapeHtml(prod.name)}" aria-label="Удалить">
-                                    <span class="material-symbols-outlined">close</span>
+                                    ${sfcSvg('close', 14)}
                                 </button>
                             </div>
                         </div>
@@ -440,7 +466,7 @@
                 shelf.innerHTML = `
                     <div class="sfc-pantry-shelf-header">
                         <div class="sfc-pantry-shelf-heading">
-                            <span class="material-symbols-outlined sfc-pantry-shelf-icon">${catIcon}</span>
+                            <span class="sfc-pantry-shelf-icon">${sfcSvg(catIcon, 18)}</span>
                             <h3 class="sfc-pantry-shelf-title">${escapeHtml(category)}</h3>
                         </div>
                         <span class="sfc-pantry-shelf-count">${items.length}</span>
@@ -464,7 +490,7 @@
                 tr.innerHTML = `
                     <td>
                         <div class="sfc-item-cell">
-                            <span class="material-symbols-outlined sfc-item-icon">${iconName}</span>
+                            <span class="sfc-item-icon">${sfcSvg(iconName, 18)}</span>
                             <span>${escapeHtml(prod.name)}</span>
                         </div>
                     </td>
@@ -473,7 +499,7 @@
                     <td><span class="sfc-fresh-tag">${freshnessText}</span></td>
                     <td style="text-align: right;">
                         <button type="button" class="sfc-btn-icon-subtle btn-delete-prod" data-index="${index}" title="Удалить">
-                            <span class="material-symbols-outlined">delete_outline</span>
+                            ${sfcSvg('close', 14)}
                         </button>
                     </td>
                 `;
@@ -545,7 +571,7 @@
             return;
         }
 
-        dom.btnStartCook.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Составление меню и рецептов...</span>';
+        dom.btnStartCook.innerHTML = sfcSvg('sync', 16, 'sfc-spin') + ' <span>Составление меню и рецептов...</span>';
         dom.btnStartCook.disabled = true;
 
         fetch(sfcConfig.restUrl + 'generate-recipes', {
@@ -589,7 +615,7 @@
             alert('Ошибка при составлении меню.');
         })
         .finally(() => {
-            dom.btnStartCook.innerHTML = '<span>Составить меню</span> <span class="material-symbols-outlined">arrow_forward</span>';
+            dom.btnStartCook.innerHTML = '<span>Составить меню</span> ' + sfcSvg('arrow_forward', 16);
             dom.btnStartCook.disabled = false;
         });
     }
@@ -992,7 +1018,7 @@
     function savePlanToWordPress() {
         if (!state.weeklyPlan || state.weeklyPlan.length === 0) return;
 
-        dom.btnSavePlan.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Сохранение...</span>';
+        dom.btnSavePlan.innerHTML = sfcSvg('sync', 16, 'sfc-spin') + ' <span>Сохранение...</span>';
         dom.btnSavePlan.disabled = true;
 
         fetch(sfcConfig.restUrl + 'save-meal-plan', {
@@ -1019,7 +1045,7 @@
             alert('Ошибка сервера при сохранении.');
         })
         .finally(() => {
-            dom.btnSavePlan.innerHTML = '<span class="material-symbols-outlined">bookmark_add</span> <span>Сохранить план</span>';
+            dom.btnSavePlan.innerHTML = sfcSvg('save', 16) + ' <span>Сохранить план</span>';
             dom.btnSavePlan.disabled = false;
         });
     }
@@ -1029,7 +1055,7 @@
             dom.groupedShoppingContainer.innerHTML = `
                 <div class="sfc-empty-placeholder" style="padding: 24px 16px;">
                     <div class="sfc-empty-icon-circle">
-                        <span class="material-symbols-outlined sfc-empty-icon">task_alt</span>
+                        ${sfcSvg('check_circle', 28)}
                     </div>
                     <h3>Все продукты есть в наличии</h3>
                     <p class="sfc-subtext">Для составленного меню на неделю все ингредиенты уже найдены в вашем холодильнике.</p>
@@ -1078,7 +1104,7 @@
 
             block.innerHTML = `
                 <div class="sfc-aisle-header">
-                    <span class="material-symbols-outlined sfc-aisle-icon">${aisleIcon}</span>
+                    <span class="sfc-aisle-icon">${sfcSvg(aisleIcon, 18)}</span>
                     <h4>${escapeHtml(category)}</h4>
                     <span class="sfc-aisle-count">${items.length}</span>
                 </div>
@@ -1120,7 +1146,7 @@
             dom.storesList.innerHTML = `
                 <div class="sfc-empty-placeholder" style="padding: 24px 12px;">
                     <div class="sfc-empty-icon-circle">
-                        <span class="material-symbols-outlined sfc-empty-icon">near_me</span>
+                        ${sfcSvg('my_location', 28)}
                     </div>
                     <h3>Ожидание местоположения</h3>
                     <p class="sfc-subtext">Разрешите доступ к геопозиции или укажите город выше, чтобы найти ближайшие магазины.</p>
@@ -1204,8 +1230,8 @@
         dom.recTitle.textContent = store.name;
         dom.recReason.textContent = rec.reason;
         dom.recDistance.textContent = store.distance_m + ' м';
-        dom.recTime.innerHTML = `<span class="material-symbols-outlined">directions_walk</span> ~${store.walking_time_mins} мин пешком`;
-        dom.recHours.innerHTML = `<span class="material-symbols-outlined">schedule</span> ${store.opening_hours || '08:00 - 23:00'}`;
+        dom.recTime.innerHTML = sfcSvg('walk', 15) + ` ~${store.walking_time_mins} мин пешком`;
+        dom.recHours.innerHTML = sfcSvg('clock', 15) + ` ${store.opening_hours || '08:00 - 23:00'}`;
 
         if (dom.recEngineLabel) {
             dom.recEngineLabel.textContent = 'Оптимальный выбор';
@@ -1216,7 +1242,7 @@
             rec.tips.forEach(t => {
                 const div = document.createElement('div');
                 div.className = 'sfc-rec-tip-item';
-                div.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>${escapeHtml(t)}</span>`;
+                div.innerHTML = sfcSvg('check_circle', 15) + ` <span>${escapeHtml(t)}</span>`;
                 dom.recTips.appendChild(div);
             });
         }
@@ -1238,7 +1264,7 @@
             dom.storesList.innerHTML = `
                 <div class="sfc-empty-placeholder" style="padding: 24px 12px;">
                     <div class="sfc-empty-icon-circle">
-                        <span class="material-symbols-outlined sfc-empty-icon">search_off</span>
+                        ${sfcSvg('search', 28)}
                     </div>
                     <h3>Магазины не найдены</h3>
                     <p class="sfc-subtext">${escapeHtml(msg)}</p>
@@ -1320,7 +1346,7 @@
 
         const userIcon = L.divIcon({
             className: 'sfc-user-pin',
-            html: '<div style="background:#285430; color:#fff; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.25); font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">my_location</span></div>',
+            html: `<div style="background:#285430; color:#fff; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:50%; font-size:12px;">${sfcSvg('my_location', 14)}</div>`,
             iconSize: [26, 26],
             iconAnchor: [13, 13]
         });
@@ -1335,7 +1361,7 @@
 
             const storeIcon = L.divIcon({
                 className: 'sfc-store-pin',
-                html: `<div style="background:${markerBg}; color:#fff; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.2);"><span class="material-symbols-outlined" style="font-size:17px;">storefront</span></div>`,
+                html: `<div style="background:${markerBg}; color:#fff; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:6px;">${sfcSvg('storefront', 16)}</div>`,
                 iconSize: [28, 28],
                 iconAnchor: [14, 14]
             });
@@ -1365,7 +1391,7 @@
         }
 
         if (dom.btnGeolocate) {
-            dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span> <span>Определение...</span>';
+            dom.btnGeolocate.innerHTML = sfcSvg('sync', 16, 'sfc-spin') + ' <span>Определение...</span>';
         }
 
         navigator.geolocation.getCurrentPosition(
@@ -1400,7 +1426,7 @@
                     .catch(e => console.warn('Reverse geocode error:', e))
                     .finally(() => {
                         if (dom.btnGeolocate) {
-                            dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                            dom.btnGeolocate.innerHTML = sfcSvg('my_location', 16) + ' <span>Мое местоположение</span>';
                         }
                         if (dom.locationPrompt) {
                             dom.locationPrompt.style.display = 'none';
@@ -1414,7 +1440,7 @@
             (err) => {
                 console.warn('Geolocation denied or unavailable:', err);
                 if (dom.btnGeolocate) {
-                    dom.btnGeolocate.innerHTML = '<span class="material-symbols-outlined">my_location</span> <span>Мое местоположение</span>';
+                    dom.btnGeolocate.innerHTML = sfcSvg('my_location', 16) + ' <span>Мое местоположение</span>';
                 }
                 if (!isSilentAuto) {
                     alert('Пожалуйста, разрешите доступ к геопозиции в браузере или введите ваш город в строке поиска.');
@@ -1434,7 +1460,7 @@
             return;
         }
 
-        dom.btnSearchCity.innerHTML = '<span class="material-symbols-outlined sfc-spin">sync</span>';
+        dom.btnSearchCity.innerHTML = sfcSvg('sync', 16, 'sfc-spin');
 
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`)
             .then(r => r.json())
@@ -1471,7 +1497,7 @@
                 fetchStoresAndRecommendations(query);
             })
             .finally(() => {
-                dom.btnSearchCity.innerHTML = '<span class="material-symbols-outlined">arrow_forward</span>';
+                dom.btnSearchCity.innerHTML = sfcSvg('search', 16);
             });
     }
 

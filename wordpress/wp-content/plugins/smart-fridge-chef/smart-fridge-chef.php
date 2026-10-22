@@ -43,14 +43,13 @@ function sfc_disable_wp_emojis() {
 add_action( 'wp_enqueue_scripts', 'sfc_enqueue_assets' );
 function sfc_enqueue_assets() {
     wp_enqueue_style( 'sfc-google-fonts', 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap', [], null );
-    wp_enqueue_style( 'google-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0', [], null );
     wp_enqueue_style( 'leaflet-css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', [], '1.9.4' );
     wp_enqueue_script( 'leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', [], '1.9.4', true );
 
     $css_ver = file_exists( SFC_PATH . 'assets/css/app.css' ) ? filemtime( SFC_PATH . 'assets/css/app.css' ) : time();
     $js_ver  = file_exists( SFC_PATH . 'assets/js/app.js' ) ? filemtime( SFC_PATH . 'assets/js/app.js' ) : time();
 
-    wp_enqueue_style( 'sfc-app-css', SFC_URL . 'assets/css/app.css', [ 'sfc-google-fonts', 'google-material-symbols', 'leaflet-css' ], $css_ver );
+    wp_enqueue_style( 'sfc-app-css', SFC_URL . 'assets/css/app.css', [ 'sfc-google-fonts', 'leaflet-css' ], $css_ver );
     wp_enqueue_script( 'sfc-app-js', SFC_URL . 'assets/js/app.js', [ 'leaflet-js' ], $js_ver, true );
 
     $ai_config = SFC_AI_Engine::get_ai_config();
